@@ -26,18 +26,19 @@ ServerDeck provides an all-in-one terminal console and telemetry engine built fo
 ## Table of Contents
 
 1. [Architectural Overview](#architectural-overview)
-2. [Filesystem Hierarchy and Storage Layout](#filesystem-hierarchy-and-storage-layout)
-3. [Comprehensive Installation Workflows](#comprehensive-installation-workflows)
-4. [Configuration Files and Data Management](#configuration-files-and-data-management)
-5. [TUI Dashboard Guide](#tui-dashboard-guide)
-6. [Deep Dive into Tab 7 (Docker and Database Management)](#deep-dive-into-tab-7-docker-and-database-management)
-7. [Keyboard Navigation and Shortcuts](#keyboard-navigation-and-shortcuts)
-8. [Discord Sentinel Bot and Telemetry Webhooks](#discord-sentinel-bot-and-telemetry-webhooks)
-9. [Systemd Service Management](#systemd-service-management)
-10. [Command Line Interface Reference](#command-line-interface-reference)
-11. [Project Organization](#project-organization)
-12. [Troubleshooting and Diagnostic Procedures](#troubleshooting-and-diagnostic-procedures)
-13. [License](#license)
+2. [Why the Automated Installer is the Best Choice](#why-the-automated-installer-is-the-best-choice)
+3. [Installation Workflows (Ranked by Capability)](#installation-workflows-ranked-by-capability)
+4. [Filesystem Hierarchy and Storage Layout](#filesystem-hierarchy-and-storage-layout)
+5. [Configuration Files and Data Management](#configuration-files-and-data-management)
+6. [TUI Dashboard Guide](#tui-dashboard-guide)
+7. [Deep Dive into Tab 7 (Docker and Database Management)](#deep-dive-into-tab-7-docker-and-database-management)
+8. [Keyboard Navigation and Shortcuts](#keyboard-navigation-and-shortcuts)
+9. [Discord Sentinel Bot and Telemetry Webhooks](#discord-sentinel-bot-and-telemetry-webhooks)
+10. [Systemd Service Management](#systemd-service-management)
+11. [Command Line Interface Reference](#command-line-interface-reference)
+12. [Project Organization](#project-organization)
+13. [Troubleshooting and Diagnostic Procedures](#troubleshooting-and-diagnostic-procedures)
+14. [License](#license)
 
 ---
 
@@ -48,6 +49,169 @@ ServerDeck operates on a decoupled architecture separating interactive rendering
 Hardware vitals and operational statistics are queried using direct reads from `/proc`, `/sys`, and system sockets rather than spawning heavy shell tools. Disk health tests (SMART), MariaDB catalog schemas, and Docker inspection pipelines run inside isolated background workers, preventing the interface from freezing when slow storage or network mounts are probed.
 
 Interface elements dynamically adjust between 80-column terminal displays and wide multi-column layouts up to 120 columns without horizontal line wrapping or frame tearing. Color profiles and language settings (English and Polish) persist across reboots inside `config.yaml`. Secret tokens loaded from `.env` are held in process memory without leaking into `/proc/<pid>/environ`.
+
+---
+
+## Why the Automated Installer is the Best Choice
+
+While ServerDeck can be quickly previewed via NPX or Pip, the automated bash installation script (`install.sh`) is the single most beneficial, complete, and robust installation route for any real-world Linux system.
+
+The table below demonstrates why running the full installation script delivers functionality that package managers cannot provide:
+
+| Capability / Architecture Layer | Automated Script (`install.sh`) | NPX (`npx serverdeck`) | Pip (`pip install`) |
+| :--- | :---: | :---: | :---: |
+| **Systemd 24/7 Daemon Auto-Start** | Included (Auto-configured) | Not available | Manual setup required |
+| **Crash Auto-Recovery (`Restart=always`)** | Included (System-level) | Not available | Manual setup required |
+| **Dedicated Service User (`serverdeck`)** | Created (`/var/lib/serverdeck`) | Runs as current user | Runs as current user |
+| **Non-Root Docker Access (`docker` group)** | Auto-provisioned | Permission denied if non-root | Permission denied if non-root |
+| **Hardware Sensors (`lm-sensors`, `smartctl`)** | Auto-installed via APT | Missing unless pre-installed | Missing unless pre-installed |
+| **Hardened Secrets Path (`/etc/serverdeck`)** | Created (`0750` / `0640`) | Ephemeral / Home directory | Ephemeral / Home directory |
+| **PEP 668 Virtual Environment** | Isolated in `/opt/serverdeck/venv` | Ephemeral `~/.local/state` | System Python risk |
+| **Global Path Executable (`/usr/local/bin`)** | Available to all users | Only available if Node installed | Only in active virtualenv |
+| **Homelab Software Provisioning Engine** | 16 modular full-stack targets | Terminal monitor only | Terminal monitor only |
+
+### The Advantages of the Script in Detail
+
+#### Zero-Privilege Escalation for Daily Monitoring
+Running hardware monitors as root is an unnecessary security risk. The script provisions an unprivileged system user (`serverdeck`), creates dedicated data directories (`/var/lib/serverdeck`), and joins the user to the `docker` group. This grants the telemetry engine direct access to the Docker socket and hardware counters without requiring `sudo` for everyday dashboard sessions.
+
+#### Uninterrupted 24/7 Discord Telemetry
+NPX and pip commands stop transmitting metrics the moment you close your terminal window. The automated script deploys and activates `serverdeck-bot.service` in systemd. The Discord Sentinel daemon runs silently in the background, surviving reboots, network interruptions, and SSH disconnects.
+
+#### Automatic Hardware Driver and Sensor Tooling
+Features like SMART drive wear calculations, NVMe health metrics, and motherboard fan tachometers rely on system utilities such as `smartctl` and `sensors`. The installer automatically detects your Linux distribution and installs these utilities ahead of time, ensuring tabs 4 and 5 display live hardware metrics rather than empty cards.
+
+#### Full Modular Homelab Stack Deployment
+Beyond ServerDeck itself, the installer doubles as an automated server provisioner. Using flags or the interactive menu, administrators can stand up Docker Engine, MariaDB, Nginx with Certbot SSL, Portainer, Cockpit, WireGuard, and Pterodactyl with tuned firewall rules in a single unattended execution.
+
+---
+
+## Installation Workflows (Ranked by Capability)
+
+### Method 1: The Automated Production Installer (Recommended)
+
+This is the preferred route for bare-metal servers, home servers, and cloud instances running Ubuntu or Debian.
+
+#### Complete Automated Stack Installation
+Run the single command below to deploy ServerDeck, its background daemon, systemd integration, and all core hardware dependencies:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Norbertkkl/ServerDeck/main/install.sh | sudo bash -s -- --all
+```
+
+#### Interactive Modular Installer
+If you wish to select specific modules (such as installing Docker Engine, setting up MariaDB, or configuring UFW firewall policies selectively), execute the script without flags to open the interactive setup menu:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Norbertkkl/ServerDeck/main/install.sh | sudo bash
+```
+
+The installer presents 16 individual provisioning targets:
+1. OpenSSH & SFTP Server hardening on port 22
+2. MariaDB / MySQL database engine installation and security wizard
+3. Official Docker Engine and Docker Compose repository setup
+4. Nginx Web Server with Certbot SSL automation
+5. Apache2 Web Server with Certbot SSL automation
+6. Samba SMB/CIFS Network File Sharing (`/srv/serverdeck_share`)
+7. Cockpit Web Console on port 9090
+8. Portainer Community Edition Docker Web UI on port 9443
+9. WireGuard VPN, Tailscale, and Fail2ban security modules
+10. Java 21 LTS and Node.js / NPM / PM2 runtimes
+11. Rclone, BorgBackup, and Restic backup tooling
+12. Prometheus Node Exporter on port 9100
+13. Pterodactyl Game Server Management Panel and Wings daemon
+14. System essentials, Python 3 runtime, and hardware libraries
+15. UFW firewall automated port mapping and default policies
+16. Full ServerDeck Stack deployment
+
+#### Verification After Script Installation
+Once the script completes, ServerDeck is available immediately from any path:
+
+```bash
+# Launch the interactive terminal console
+serverdeck
+
+# Inspect background Discord daemon status
+sudo systemctl status serverdeck-bot.service
+```
+
+---
+
+### Method 2: Zero-Install Preview via NPX (Quick Evaluation)
+
+If you are on an unmanaged machine, lack root access, or simply want to test the TUI interface for five minutes without altering system files, use NPX:
+
+```bash
+npx serverdeck
+```
+
+Requirements:
+- Node.js version 16 or newer
+- Python 3.9 or newer
+
+The NPX launcher creates a sandboxed virtual environment in `~/.local/state/serverdeck/venv_npm`, checks for dependencies, and runs the TUI directly. It does not configure background systemd services or alter system groups.
+
+---
+
+### Method 3: Global Package via NPM
+
+For workstations where Node.js is already the primary package manager:
+
+```bash
+npm install -g serverdeck
+serverdeck
+```
+
+To update an existing installation to the latest registry version:
+```bash
+npm update -g serverdeck
+```
+
+---
+
+### Method 4: Developer Setup from Git Source
+
+For contributors developing new collectors, designing custom themes, or testing pull requests:
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Norbertkkl/ServerDeck.git
+cd ServerDeck
+```
+
+2. Create and activate an isolated virtual environment:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+3. Install required build and runtime dependencies:
+```bash
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+```
+
+4. Install the package in editable mode:
+```bash
+pip install -e .
+```
+
+5. Initialize the environment configuration and run:
+```bash
+cp .env.example .env
+serverdeck
+```
+
+---
+
+### Method 5: Python Package Index (PyPI)
+
+If you prefer using standard Python tooling without Node.js:
+
+```bash
+pip install serverdeck-cli
+serverdeck
+```
 
 ---
 
@@ -107,100 +271,6 @@ The automated installer deploys a hardened systemd unit file at:
 ```
 
 This service runs under the unprivileged system account `serverdeck`, links `/etc/serverdeck/.env` into process memory, locks write access to system binaries via `ProtectSystem=strict`, restricts home access via `ProtectHome=read-only`, and constrains data writes exclusively to `/var/lib/serverdeck`.
-
----
-
-## Comprehensive Installation Workflows
-
-ServerDeck supports five distinct installation workflows to suit homelabs, developer workstations, and production servers.
-
-### Method 1: Zero-Install Execution with NPX (Instant)
-
-This method requires Node.js (v16+) and Python 3. It downloads nothing permanently into system directories and requires zero configuration to test.
-
-```bash
-npx serverdeck
-```
-
-Execution sequence:
-1. NPX pulls `serverdeck@latest` tarball directly into the local npm cache.
-2. The wrapper `bin/serverdeck.js` executes and resolves a valid Python 3 interpreter.
-3. If an existing virtual environment is not found, it initializes `~/.local/state/serverdeck/venv_npm`.
-4. It verifies essential modules (`psutil`, `yaml`). If missing, it installs `requirements.txt` into the private virtual environment.
-5. It attaches the raw terminal stream to `serverdeck.app` and boots the TUI dashboard.
-
-### Method 2: Global Installation via NPM
-
-This method registers `serverdeck` as a permanent global command across your system shell.
-
-```bash
-npm install -g serverdeck
-serverdeck
-```
-
-Updating to the newest release is performed by running:
-```bash
-npm update -g serverdeck
-```
-
-### Method 3: Automated Production Setup via Bash (Ubuntu and Debian)
-
-This method prepares a full production stack on bare-metal servers or cloud instances. It configures system directories, service accounts, file permissions, and systemd units.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Norbertkkl/ServerDeck/main/install.sh | sudo bash -s -- --all
-```
-
-The installer performs the following operations automatically:
-1. Validates that the executing user has root authority (`EUID == 0`).
-2. Installs system packages: `python3`, `python3-venv`, `python3-pip`, `git`, `curl`, `htop`, `smartmontools`, `lm-sensors`, and `ufw`.
-3. Creates the system group `serverdeck` and unprivileged system user `serverdeck` with home directory `/var/lib/serverdeck`.
-4. Adds user `serverdeck` to group `docker` to allow container inspection without root.
-5. Creates `/etc/serverdeck` (`0750 root:serverdeck`) and populates default template copies of `config.yaml`, `bot.yaml`, and `.env` (`0640`).
-6. Creates `/var/lib/serverdeck` (`0770 serverdeck:serverdeck`).
-7. Builds `/opt/serverdeck/venv` and installs all wheels from `requirements.txt`.
-8. Generates global executables in `/usr/local/bin/serverdeck` and `/usr/local/bin/serverdeck-bot`.
-9. Deploys `/etc/systemd/system/serverdeck-bot.service`, runs `systemctl daemon-reload`, and enables boot autostart.
-
-### Method 4: Manual Git Repository Setup (Developer Workflow)
-
-For developing new collectors, designing custom themes, or testing code modifications:
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Norbertkkl/ServerDeck.git
-cd ServerDeck
-```
-
-2. Create a dedicated virtual environment:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-3. Upgrade packaging tools and install dependencies:
-```bash
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
-```
-
-4. Install the repository in editable mode:
-```bash
-pip install -e .
-```
-
-5. Copy the sample environment file and run:
-```bash
-cp .env.example .env
-serverdeck
-```
-
-### Method 5: Python Package Index (PyPI)
-
-```bash
-pip install serverdeck-cli
-serverdeck
-```
 
 ---
 
