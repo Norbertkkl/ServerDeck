@@ -1,0 +1,244 @@
+_documentation:
+  title: ServerDeck Discord Bot & Webhook Configuration Guide
+  description: This file manages the auto-hosted ServerDeck Discord Bot service, live
+    dashboard channel, threshold alerts, and embed templates.
+  table_of_contents:
+  - 1. Create a Discord Bot Application at https://discord.com/developers/applications
+  - 2. Enable Message Content & Server Members Intents in Bot settings
+  - 3. Paste your Bot Token into 'bot_token' below
+  - 4. Invite the bot to your Discord server with Administrator or Message/Embed permissions
+  - 5. Specify 'status_channel_id' to enable auto-updating live dashboard messages
+  - 6. Specify 'alerts_channel_id' to receive instant hardware threshold alerts
+  - 7. Add your Discord User ID to 'allowed_user_ids' to authorize management commands
+    (/restart, etc.)
+  - '8. If only using Webhooks without a Bot, set ''webhook_url'' and ''enabled: true'''
+  available_placeholders:
+    HOST_AND_OS:
+      '{hostname}': System host name (e.g. terminal)
+      '{os_distro}': Operating system and architecture (e.g. Ubuntu 24.04.4 LTS x86_64)
+      '{kernel}': Linux kernel release (e.g. 6.8.0-138-generic)
+      '{architecture}': Hardware CPU architecture (e.g. x86_64)
+      '{uptime}': Formatted system uptime (e.g. 9h 48m 34s)
+      '{boot_time}': System boot timestamp or date
+      '{motherboard_vendor}': Motherboard manufacturer (e.g. HP / Hewlett-Packard)
+      '{motherboard_model}': Motherboard board name or model (e.g. 21B4)
+      '{bios_vendor}': BIOS firmware vendor (e.g. AMI)
+      '{bios_version}': BIOS version string and release date
+      '{virtualization}': Detected hypervisor or virtualization technology (e.g. KVM,
+        Docker, Baremetal)
+      '{logged_in_users}': List of currently logged-in users
+    CPU_AND_THERMALS:
+      '{cpu_model}': CPU processor name and model (e.g. AMD GX-415GA SOC)
+      '{cpu_percent}': Overall CPU utilization percentage (e.g. 14.5)
+      '{cpu_cores_physical}': Count of physical CPU cores (e.g. 4)
+      '{cpu_cores_logical}': Count of logical CPU threads (e.g. 4)
+      '{cpu_freq_current}': Current CPU frequency in MHz (e.g. 1483.6)
+      '{cpu_freq_min}': Minimum CPU scaling frequency in MHz
+      '{cpu_freq_max}': Maximum CPU scaling frequency in MHz
+      '{cpu_governor}': Active CPU frequency scaling governor (e.g. schedutil, powersave)
+      '{cpu_temperature}': Primary CPU hardware thermal reading in Celsius (e.g. 42.5
+        C)
+    MEMORY_AND_SWAP:
+      '{ram_used}': Allocated physical RAM (e.g. 3.2 GB)
+      '{ram_free}': Free physical RAM (e.g. 4.0 GB)
+      '{ram_total}': Total physical RAM installed (e.g. 7.2 GB)
+      '{ram_percent}': RAM utilization percentage (e.g. 44.4)
+      '{ram_cached}': Page cache memory allocation (e.g. 1.8 GB)
+      '{ram_buffers}': OS filesystem buffers memory (e.g. 120 MB)
+      '{ram_slab}': Kernel slab memory (e.g. 180 MB)
+      '{ram_dirty}': Dirty memory pages waiting for disk sync
+      '{swap_used}': Allocated Swap space (e.g. 0.0 B)
+      '{swap_free}': Free Swap space (e.g. 4.0 GB)
+      '{swap_total}': Total Swap space configured (e.g. 4.0 GB)
+      '{swap_percent}': Swap utilization percentage (e.g. 0.0)
+    STORAGE_AND_DISKS:
+      '{disk_used}': Used capacity on primary root mount (e.g. 16.0 GB)
+      '{disk_free}': Free available capacity on root mount (e.g. 98.1 GB)
+      '{disk_total}': Total capacity on primary root mount (e.g. 114.1 GB)
+      '{disk_percent}': Storage utilization percentage on root mount (e.g. 14.7)
+      '{disk_mount}': Primary mount point path (e.g. /)
+      '{disk_read_speed}': Real-time disk read I/O throughput (e.g. 0.0 B/s)
+      '{disk_write_speed}': Real-time disk write I/O throughput (e.g. 14.2 KB/s)
+      '{disk_partitions_summary}': Summary of all mounted disks and partitions
+      '{smart_health_status}': Overall S.M.A.R.T. health status (e.g. PASSED)
+      '{smart_drives_count}': Number of detected physical storage drives
+    NETWORK_AND_PORTS:
+      '{net_rx_speed}': Real-time download rate (e.g. 0.0 B/s)
+      '{net_tx_speed}': Real-time upload rate (e.g. 0.0 B/s)
+      '{net_rx_total}': Total received network traffic since boot (e.g. 68.4 MB)
+      '{net_tx_total}': Total transmitted network traffic since boot (e.g. 423.6 MB)
+      '{primary_ip}': Primary active network IP address (e.g. 10.10.10.10)
+      '{primary_iface}': Primary network interface name (e.g. enp1s0)
+      '{dns_servers}': List of active DNS nameservers (e.g. 10.10.10.1)
+      '{listening_ports_count}': Count of open listening network ports (e.g. 12)
+    SYSTEM_LOAD_AND_PROCESSES:
+      '{load_1m}': 1-minute load average (e.g. 0.10)
+      '{load_5m}': 5-minute load average (e.g. 0.12)
+      '{load_15m}': 15-minute load average (e.g. 0.11)
+      '{total_processes}': Count of running system processes (e.g. 168)
+      '{file_descriptors}': Allocated file descriptors (e.g. 1024 / 1048576)
+      '{entropy_available}': Available kernel cryptographic entropy (e.g. 256)
+      '{top_processes}': Formatted table of top CPU & RAM consuming processes
+      '{top_cpu_process}': Top process consuming CPU (e.g. python3 12.5%)
+      '{top_mem_process}': Top process consuming RAM (e.g. mysqld 8.4%)
+    DOCKER_AND_INFRASTRUCTURE:
+      '{docker_status}': Docker daemon service state (e.g. Running, Stopped, Not Installed)
+      '{docker_containers_total}': Total Docker containers on system (e.g. 3)
+      '{docker_containers_running}': Running Docker containers on system (e.g. 2)
+      '{mariadb_status}': MariaDB/MySQL service status (e.g. Active, Inactive)
+      '{mariadb_databases_count}': Count of MariaDB databases (e.g. 5)
+      '{mariadb_users_count}': Count of MariaDB users (e.g. 6)
+      '{ufw_status}': UFW Firewall status (e.g. Active, Disabled)
+      '{ufw_rules_count}': Total configured firewall rules (e.g. 38)
+    DATE_TIME_AND_METADATA:
+      '{timestamp}': Full datetime string when report was generated (e.g. 2026-08-28
+        18:20:00)
+      '{date}': Current date string (e.g. 2026-08-28)
+      '{time}': Current time string (e.g. 18:20:00)
+      '{app_name}': Application brand name (ServerDeck)
+      '{active_theme}': Currently active color theme name
+      '{language}': Current language code (EN or PL)
+bot_settings:
+  bot_token: ''
+  command_prefix: '!'
+  enable_slash_commands: true
+  status_channel_id: 1543228072407597076
+  alerts_channel_id: 1543228094574493716
+  live_dashboard_interval_seconds: 45
+  allowed_user_ids: [771669963890491422]
+  admin_role_ids: []
+  username: ServerDeck Sentinel
+  avatar_url: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/server.png
+webhook_url: https://discord.com/api/webhooks/1543230127025168454/ClASxtuavVdBGaiAj_6eBi22ELiTWTWIJVvaBv8mrcdZ6hWZpTfLeRY7bVs192IjGMgE
+enabled: true
+alert_thresholds:
+  cpu_percent: 90.0
+  ram_percent: 90.0
+  disk_percent: 90.0
+  temp_celsius: 80.0
+embed_templates:
+  system_report:
+    en:
+      title: ServerDeck System Telemetry Report
+      description: Comprehensive performance snapshot for **{hostname}** ({os_distro},
+        Kernel {kernel}).
+      color_hex: '#00f0ff'
+      fields:
+      - name: CPU Utilization
+        value: '{cpu_percent}% ({cpu_cores_logical} Cores @ {cpu_freq_current} MHz)'
+        inline: true
+      - name: Memory (RAM)
+        value: '{ram_used} / {ram_total} ({ram_percent}%)'
+        inline: true
+      - name: Storage Space
+        value: '{disk_used} / {disk_total} ({disk_percent}%)'
+        inline: true
+      - name: System Uptime
+        value: '{uptime}'
+        inline: true
+      - name: Load Average
+        value: '{load_1m}, {load_5m}, {load_15m}'
+        inline: true
+      - name: Active Processes
+        value: '{total_processes} running'
+        inline: true
+      - name: Network & IP
+        value: '{primary_ip} ({primary_iface}) ↓{net_rx_speed} ↑{net_tx_speed}'
+        inline: true
+      - name: Containers & DB
+        value: 'Docker: {docker_containers_running}/{docker_containers_total} | DBs:
+          {mariadb_databases_count}'
+        inline: true
+      - name: Firewall & Security
+        value: 'UFW: {ufw_status} ({ufw_rules_count} rules)'
+        inline: true
+      - name: Top Consuming Processes
+        value: '```{top_processes}```'
+        inline: false
+      footer: ServerDeck Enterprise Telemetry | {timestamp}
+    pl:
+      title: 'ServerDeck Strona Raportowa'
+      description: '{tresc_raportu_host} **{hostname}** ({os_distro}, Kernel {kernel}).'
+      color_hex: '#00f0ff'
+      fields:
+      - name: '{pole_cpu}'
+        value: '{cpu_percent}% ({cpu_cores_logical} rdzeni @ {cpu_freq_current} MHz)'
+        inline: true
+      - name: '{pole_ram}'
+        value: '{ram_used} / {ram_total} ({ram_percent}%)'
+        inline: true
+      - name: '{pole_dysk}'
+        value: '{disk_used} / {disk_total} ({disk_percent}%)'
+        inline: true
+      - name: 'Aktualny Uptime'
+        value: '{uptime}'
+        inline: true
+      - name: '{pole_obciazenie}'
+        value: '{load_1m}, {load_5m}, {load_15m}'
+        inline: true
+      - name: 'Aktywne procesy'
+        value: '{total_processes} aktywnych'
+        inline: true
+      - name: '{pole_siec}'
+        value: '{primary_ip} ({primary_iface}) ↓{net_rx_speed} ↑{net_tx_speed}'
+        inline: true
+      - name: '{pole_kontenery_i_bazy}'
+        value: 'Docker: {docker_containers_running}/{docker_containers_total} | Bazy:
+          {mariadb_databases_count}'
+        inline: true
+      - name: 'Firewall'
+        value: 'UFW: {ufw_status} ({ufw_rules_count} regul)'
+        inline: true
+      - name: '{pole_top_procesy}'
+        value: '```{top_processes}```'
+        inline: false
+      footer: '{stopka_raportu} | {timestamp}'
+  alert_notification:
+    en:
+      title: ServerDeck Resource Threshold Alert
+      description: 'Warning: Threshold exceeded on **{hostname}** ({primary_ip}).'
+      color_hex: '#f43f5e'
+      fields:
+      - name: Metric Alert
+        value: '{alert_message}'
+        inline: false
+      - name: Current Value
+        value: '{current_value}'
+        inline: true
+      - name: Configured Threshold
+        value: '{threshold_value}'
+        inline: true
+      - name: Server Uptime
+        value: '{uptime}'
+        inline: true
+      - name: System Load
+        value: '{load_1m}, {load_5m}, {load_15m}'
+        inline: true
+      - name: Top Process
+        value: '{top_cpu_process}'
+        inline: true
+      footer: ServerDeck Watchdog Sentinel | {timestamp}
+    pl:
+      title: ServerDeck - Alert Systemowy
+      description: Uwaga! Wystąpiły problemy z urządzeniem **{hostname}** ({primary_ip}).
+      color_hex: '#f43f5e'
+      fields:
+      - name: '{pole_komunikat_alertu}'
+        value: '{alert_message}'
+        inline: false
+      - name: 'Aktualna wartość:'
+        value: '{current_value}'
+        inline: true
+      - name: Próg ostrzeżenia
+        value: '{threshold_value}'
+        inline: true
+      - name: Uptime
+        value: '{uptime}'
+        inline: true
+      - name: Aktualne obciążenie
+        value: '1m: {load_1m}, 5m: {load_5m}, 15m: {load_15m}'
+        inline: true
+      - name: Maksymalne procesy
+        value: '{top_cpu_process}'
+        inline: true
+      footer: ServerDeck - Alert Systemowy | {timestamp}

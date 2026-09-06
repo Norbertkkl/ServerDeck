@@ -1,0 +1,472 @@
+# ==============================================================================
+# ServerDeck - Complete English Localization Dictionary (locales/en.yaml)
+# ==============================================================================
+
+common:
+  title: SERVERDECK
+  tagline: Professional Linux Server Telemetry and Control Cockpit
+  status_active: ACTIVE
+  status_paused: PAUSED
+  status_not_installed: NOT INSTALLED
+  status_installed: INSTALLED
+  status_running: RUNNING
+  status_stopped: STOPPED
+  status_exited: EXITED
+  status_healthy: HEALTHY
+  status_degraded: DEGRADED
+  status_passed: PASSED
+  status_failed: FAILED
+  status_system_schema: System Schema
+  status_user_db: User Database
+  status_protected_user: Protected System User
+  status_superuser: Superuser Administrator
+  status_standard_user: Standard User
+  refresh: 'Interval: {rate}s'
+  confirm_yes: Press [y/Enter] to confirm
+  confirm_no: Press [n/ESC] to cancel
+  confirm: Press [Y] to confirm, [N] to cancel
+  error: 'Error: {msg}'
+  success: 'Success: {msg}'
+  theme_label: 'Theme: {theme}'
+  footer_hint: ' [1-9,0/Tab] Tabs | [l] Lang: {lang} | [c] Theme: {theme} | [+/-]
+    {rate:.1f}s | [p] Pause | [q] Quit '
+  prompt_prefix: PROMPT
+  status_prefix: STATUS
+  goodbye: ServerDeck stopped. Goodbye!
+  no_data: No data available
+  unknown: Unknown
+  none: None
+  'yes': 'Yes'
+  'no': 'No'
+  enabled: Enabled
+  disabled: Disabled
+  loading: Loading data...
+  bytes_unit: Byte
+  kbytes_unit: KB
+  mbytes_unit: MB
+  gbytes_unit: GB
+  tbytes_unit: TB
+nav:
+  tab_1: Overview
+  tab_2: Processes
+  tab_3: Network
+  tab_4: Sensors
+  tab_5: Disks & SMART
+  tab_6: Memory
+  tab_7: DB & Docker
+  tab_8: Logs
+  tab_9: Firewall
+  tab_0: Software Hub
+  switch_hint: Press 0-9 or [Tab] to switch sections
+  cycle_hint: Press [Tab] to cycle tabs sequentially
+  lang_toggle_hint: Press [l] to toggle language dynamically (EN/PL)
+tab1_overview:
+  system_vitals: SYSTEM HARDWARE & PLATFORM VITALS
+  model: Model
+  motherboard: Motherboard
+  os: OS
+  kernel: Kernel
+  load: Load Avg
+  hostname: Hostname
+  uptime: Uptime
+  boot_time: Boot Time
+  logged_users: Logged-in Users
+  processes: Processes
+  cpu_title: CPU UTILIZATION & OSCILLOSCOPE
+  cpu_model: CPU Model
+  cpu_cores: Cores
+  cpu_freq: Frequency
+  cpu_governor: Governor
+  cpu_usage: Usage
+  memory_title: MEMORY MONITOR (RAM & SWAP)
+  ram: RAM
+  swap: SWAP
+  ram_used_total: '{used} / {total}'
+  network_title: NETWORK THROUGHPUT & INTERFACES
+  live_speed: Live Speed
+  rx: Download (RX)
+  tx: Upload (TX)
+  total: Total
+  storage_title: STORAGE DEVICES & PARTITIONS
+  webhook_title: DISCORD WEBHOOK & TELEMETRY INTEGRATION
+  webhook_status_active: '[ ACTIVE ]'
+  webhook_status_configured_disabled: '[ CONFIGURED / DISABLED ]'
+  webhook_status_not_configured: '[ NOT CONFIGURED ]'
+  webhook_url: Webhook
+  webhook_config: Config
+  webhook_shortcuts: 'Shortcuts: [w] Force Telemetry Report | [t] Test Alert | [e]
+    Export JSON'
+tab2_processes:
+  title: ACTIVE SYSTEM PROCESSES (SORTED BY {sort})
+  col_pid: PID
+  col_user: USER
+  col_cpu: CPU%
+  col_mem: MEM%
+  col_state: STATE
+  col_command: COMMAND / PROCESS
+  scroll_hint: Showing {start}-{end} of {total} processes (Use ↑ / ↓ / PageUp / PageDown)
+  shortcuts: 'Shortcuts: [s] Sort CPU | [m] Sort RAM | [/] Filter | [k] Kill process
+    | [↑/↓] Select'
+  kill_prompt: 'Enter process PID to terminate (default: {pid}) [Enter: SIGTERM, 9:
+    SIGKILL, ESC: Cancel]: '
+  kill_success: Sent SIG{sig} signal to process PID {pid}
+  kill_error: 'Failed to terminate process PID {pid}: {error}'
+  filter_prompt: 'Filter processes: {filter} (Press Enter or ESC to confirm)'
+tab3_network:
+  throughput_title: NETWORK THROUGHPUT (REAL-TIME RX / TX)
+  ports_title: LISTENING PORTS & SERVICES
+  download_rx: 'Download (RX):'
+  upload_tx: 'Upload (TX):'
+  dns: 'DNS Servers:'
+  col_port: PORT
+  col_proto: PROTO
+  col_bind: BIND IP
+  col_service: DETECTED SERVICE
+  no_ports: No listening ports detected or permission denied.
+  ip: 'IP:'
+  mac: 'MAC:'
+tab4_sensors:
+  hardware_title: MOTHERBOARD, BIOS & CHASSIS SPECIFICATIONS
+  sensors_title: THERMAL SENSORS & HARDWARE TEMPERATURES
+  vendor: 'Vendor:'
+  model: 'Model:'
+  motherboard: 'Motherboard:'
+  version: 'Version:'
+  bios_vendor: 'BIOS Vendor:'
+  bios_ver: 'BIOS Ver:'
+  gpu_devices: 'GPU Devices:'
+  no_sensors: No hardware thermal sensors found (virtualized guest).
+tab5_disks:
+  drives_title: PHYSICAL STORAGE DRIVES & S.M.A.R.T. DIAGNOSTICS
+  partitions_title: BLOCK STORAGE DEVICES & PARTITION TABLE
+  device: DEVICE
+  model: MODEL
+  capacity: CAPACITY
+  type: TYPE
+  health: HEALTH
+  temp: TEMP
+  poh: POH
+  tbw: TBW
+  reallocated: REALLOCATED
+  crc_errors: CRC ERRORS
+  mount_point: MOUNT POINT
+  fs_type: FS TYPE
+  usage: USED
+  free_space: FREE
+  mount_prompt: 'Enter mount point for {dev}: {path} (Enter=Mount, ESC=Cancel)'
+  unmount_prompt: 'Are you sure you want to unmount {dev}? [y/Enter: Unmount, n/ESC:
+    Cancel]'
+  format_prompt: 'Format {dev} as filesystem: {fs} (e.g. ext4, btrfs, vfat | Enter=Format,
+    ESC=Cancel)'
+  smart_start: Initiated SMART test on {dev} in background...
+  fsck_start: Initiated FSCK integrity check on {dev} in background...
+  format_start: Formatting partition {dev} as {fs} in background...
+  mounted_success: Mounted {dev} to directory {path}
+  unmounted_success: Successfully unmounted partition {dev}
+  shortcuts: 'Shortcuts: [m] Mount | [u] Unmount | [c] FSCK Check | [t] SMART Test
+    | [f] Format | [↑/↓] Select'
+tab6_memory:
+  title: KERNEL MEMORY SUBSYSTEM & CACHE
+  services_title: CORE SYSTEM SERVICES TELEMETRY
+  total_ram: Total Physical RAM
+  used_ram: Used RAM
+  free_ram: Free RAM
+  cached: Cached Memory
+  buffers: System Buffers
+  swap: Swap Allocation
+  dirty: Dirty Pages
+  slab: Slab Allocation
+  anon: Anonymous Pages
+  snapshot_title: JSON DATA SNAPSHOT & DISCORD ALERTS
+  export_hint: 'Press [e] to save full system snapshot to: {path}'
+  discord_hint: Press [t] to send a manual test notification to Discord Webhook.
+  snapshot_saved: Successfully exported system snapshot to {path}
+  discord_sent: Discord notification sent successfully!
+  discord_no_url: No Discord Webhook URL configured in bot.yaml
+  discord_error: 'Discord Webhook error: {msg}'
+tab7_db_docker:
+  infrastructure_title: DATABASE & CONTAINER INFRASTRUCTURE
+  docker_engine: Docker Engine
+  mariadb_engine: MariaDB / MySQL
+  postgres_engine: PostgreSQL DB
+  redis_engine: Redis Cache DB
+  running_stat: '{running}/{total} active'
+  subview_containers: DOCKER CONTAINERS
+  subview_databases: DATABASE SCHEMAS
+  subview_users: USER ACCOUNTS & PRIVILEGES
+  col_container_name: CONTAINER NAME
+  col_image: DOCKER IMAGE
+  col_state: STATE
+  col_ports: PORT MAPPINGS
+  col_id: CONTAINER ID
+  col_db_name: DATABASE NAME
+  col_tables: TABLES
+  col_size_mb: SIZE (MB)
+  col_type: TYPE
+  col_username: USERNAME
+  col_host: ALLOWED HOST
+  col_user_type: ACCOUNT TYPE
+  deploy_wizard_prompt: 'Container Wizard: [1] Nginx [2] Redis [3] Portainer [4] Postgres
+    [5] MariaDB [6] UptimeKuma [7] AdGuard [8] Watchtower [ESC: Cancel]'
+  delete_container_warn: 'Are you sure you want to permanently DELETE container {name}?
+    [y/Enter: Delete, n/ESC: Cancel]'
+  create_db_prompt: 'Enter name for new MariaDB database: {name} (Enter=Create, ESC=Cancel)'
+  drop_db_warn: 'Are you sure you want to permanently DROP database {name}? [y/Enter:
+    Drop, n/ESC: Cancel]'
+  create_user_prompt: 'Create DB user (format: user@host password): {input} (Enter=Create,
+    ESC=Cancel)'
+  drop_user_warn: 'Are you sure you want to drop DB user {user}? [y/Enter: Drop, n/ESC:
+    Cancel]'
+  grant_priv_prompt: 'Grant ALL PRIVILEGES for ''{user}'' on database: {name} (Enter=Grant,
+    ESC=Cancel)'
+  reset_pass_prompt: 'Enter new password for DB user ''{user}'': {pass} (Enter=Change,
+    ESC=Cancel)'
+  shortcuts_containers: 'Shortcuts: [v] Switch View | [s] Start/Stop | [r] Restart
+    | [c] Deploy | [x] Delete | [↑/↓] Select'
+  shortcuts_databases: 'Shortcuts: [v] Switch View | [n] Create DB | [x] Drop DB |
+    [↑/↓] Select'
+  shortcuts_users: 'Shortcuts: [v] Switch View | [u] Create User | [k] Delete User
+    | [g] Grant Priv | [p] Reset Pass | [↑/↓] Select'
+  title: Databases & Containers
+  db_user_stat: Users
+  redis_store: Key-Value Store
+  view_containers: Docker Containers
+  view_databases: Databases
+  view_users: DB Users
+  switch_view: '[Tab/v] Switch Subview'
+  docker_header: DOCKER CONTAINERS
+  no_containers: No active Docker containers found on system.
+  db_header: DATABASES (MARIADB / MYSQL)
+  user_header: USER ACCOUNTS & PERMISSIONS
+tab8_logs:
+  title: SYSTEM LOGS & JOURNAL STREAM (JOURNALCTL)
+  shortcuts: 'Shortcuts: [Space] Refresh entries | [q] Quit | Live journal updates
+    every {rate:.1f}s'
+tab9_firewall:
+  title: UFW FIREWALL & NETWORK SECURITY RULES
+  status_label: 'Firewall Status:'
+  logging_label: 'Logging Level:'
+  policies_label: 'Default Policies:'
+  col_num: NUM
+  col_to: TARGET / PORT
+  col_action: ACTION
+  col_from: SOURCE
+  col_comment: COMMENT
+  blocked_title: RECENTLY BLOCKED NETWORK PACKETS
+  no_blocked: No blocked packets found in kernel logs.
+  add_rule_prompt: 'Enter UFW rule to add (e.g. allow 80/tcp, allow 22, deny 3306):
+    {rule} (Enter=Add, ESC=Cancel)'
+  delete_confirm: 'Are you sure you want to delete UFW rule {rule}? [y/Enter: Delete,
+    n/ESC: Cancel]'
+  shortcuts: 'Shortcuts: [u] Toggle UFW | [a] Add Rule | [d] Delete Rule | [r] Reload
+    | [/] Filter | [↑/↓] Select'
+tab10_software_hub:
+  title: SOFTWARE HUB & INSTALLED RUNTIMES ({installed}/{total} Active)
+  packages_title: AUTOMATED PACKAGES ({curr}/{total})
+  col_package: PACKAGE
+  col_status: STATUS
+  col_description: DESCRIPTION
+  scroll_hint: Showing {start}-{end} of {total} packages (Use ↑ / ↓ to scroll)
+  shortcuts: 'Shortcuts: [Enter]/[i] Install | [u]/[x] Uninstall | [r] Restart | [↑/↓]
+    Select'
+  console_title_running: 'PACKAGE MANAGER CONSOLE (INSTALLING: {task})'
+  console_title_idle: PACKAGE MANAGER CONSOLE (IDLE - READY)
+  uninstall_warn: 'Are you sure you want to completely UNINSTALL and purge {name}?
+    [y/Enter: Remove, n/ESC: Cancel]'
+packages:
+  pkg_1:
+    name: OpenSSH Server
+    desc: Install openssh-server, activate sshd daemon, port 22
+    category: Network & Remote Access
+    ports: 22/tcp
+  pkg_2:
+    name: SFTP & VSFTPD Server
+    desc: Secure FTP/SFTP file transfer service (vsftpd)
+    category: File Management
+    ports: 20/tcp, 21/tcp, 40000-40100/tcp
+  pkg_3:
+    name: MariaDB / MySQL Database
+    desc: Install MariaDB database engine and secure root setup
+    category: Databases
+    ports: 3306/tcp
+  pkg_4:
+    name: Docker Engine (CE)
+    desc: Official Docker Community Edition engine and containerd
+    category: Virtualization & Containers
+    ports: No default ports
+  pkg_5:
+    name: Docker Compose v2 Plugin
+    desc: Docker compose v2 plugin for multi-container services
+    category: Virtualization & Containers
+    ports: No default ports
+  pkg_6:
+    name: Nginx Web Server
+    desc: High-performance HTTP server & Reverse Proxy (Ports 80/443)
+    category: Web Servers
+    ports: 80/tcp, 443/tcp
+  pkg_7:
+    name: Apache2 Web Server
+    desc: Classic Apache2 HTTP server with mod_rewrite enabled
+    category: Web Servers
+    ports: 80/tcp, 443/tcp
+  pkg_8:
+    name: Certbot Let's Encrypt SSL
+    desc: Automated free HTTPS SSL/TLS certificate provisioning
+    category: Security
+    ports: 80/tcp, 443/tcp
+  pkg_9:
+    name: Samba SMB File Share
+    desc: Cross-platform LAN file share (/srv/serverdeck_share)
+    category: File Management
+    ports: 139/tcp, 445/tcp, 137/udp, 138/udp
+  pkg_10:
+    name: Cockpit Web Console GUI
+    desc: Web-based server administration dashboard (Port 9090)
+    category: Admin Panels
+    ports: 9090/tcp
+  pkg_11:
+    name: Portainer CE Docker UI
+    desc: Graphical container management web UI (Port 9443)
+    category: Virtualization & Containers
+    ports: 9000/tcp, 9443/tcp
+  pkg_12:
+    name: WireGuard VPN Server
+    desc: Modern, high-performance secure VPN tunnel (51820/udp)
+    category: Network & Security
+    ports: 51820/udp
+  pkg_13:
+    name: Tailscale Mesh VPN
+    desc: Zero-configuration private mesh VPN network
+    category: Network & Security
+    ports: 41641/udp
+  pkg_14:
+    name: Fail2ban Intrusion Guard
+    desc: Automated brute-force attack prevention and IP banning
+    category: Security
+    ports: All ports (Dynamic rules)
+  pkg_15:
+    name: Java 8 Runtime (OpenJDK 8)
+    desc: Java 8 JRE runtime environment for legacy engines
+    category: Development Runtimes
+    ports: No default ports
+  pkg_16:
+    name: Java 17 LTS Runtime
+    desc: Stable Long-Term Support OpenJDK 17 environment
+    category: Development Runtimes
+    ports: No default ports
+  pkg_17:
+    name: Java 21 LTS Runtime
+    desc: Modern Long-Term Support OpenJDK 21 environment
+    category: Development Runtimes
+    ports: No default ports
+  pkg_18:
+    name: Java 25 / Latest Runtime
+    desc: Cutting-edge latest OpenJDK Java release builds
+    category: Development Runtimes
+    ports: No default ports
+  pkg_19:
+    name: Node.js LTS & NPM
+    desc: JavaScript Node.js runtime and NPM package manager
+    category: Development Runtimes
+    ports: No default ports
+  pkg_20:
+    name: PM2 Process Manager
+    desc: Production process manager for Node.js and Python
+    category: System Utilities
+    ports: No default ports
+  pkg_21:
+    name: Rclone Cloud Sync
+    desc: Cloud sync tool (Google Drive, S3, Dropbox, OneDrive)
+    category: Backups
+    ports: No default ports
+  pkg_22:
+    name: BorgBackup & Restic Suite
+    desc: Encrypted, deduplicated data backup toolset
+    category: Backups
+    ports: No default ports
+  pkg_23:
+    name: Prometheus Node Exporter
+    desc: Hardware and OS telemetry metrics exporter on port 9100
+    category: Monitoring
+    ports: 9100/tcp
+  pkg_24:
+    name: Pterodactyl Panel Dependencies
+    desc: Redis, PHP, and Web dependencies for server panel
+    category: Admin Panels
+    ports: 80/tcp, 443/tcp, 8080/tcp, 2022/tcp
+  pkg_25:
+    name: Core Utilities & SMART Tools
+    desc: smartmontools, htop, tmux, ncdu, git, curl, jq
+    category: System Utilities
+    ports: No default ports
+  pkg_26:
+    name: UFW Firewall Hardening
+    desc: Automatic firewall policy hardening and port opening
+    category: Security
+    ports: 22/tcp, 80/tcp, 443/tcp
+  pkg_27:
+    name: PostgreSQL Database Engine
+    desc: Enterprise SQL database engine (Port 5432)
+    category: Databases
+    ports: 5432/tcp
+  pkg_28:
+    name: Redis In-Memory Cache
+    desc: In-memory key-value data structure store (Port 6379)
+    category: Databases
+    ports: 6379/tcp
+  pkg_29:
+    name: Caddy Web Server
+    desc: Modern HTTP/2 web server with automated HTTPS SSL
+    category: Web Servers
+    ports: 80/tcp, 443/tcp
+  pkg_30:
+    name: Uptime Kuma Monitoring
+    desc: Self-hosted monitoring tool with status pages (Port 3001)
+    category: Monitoring
+    ports: 3001/tcp
+  pkg_31:
+    name: AdGuard Home DNS Server
+    desc: Network-wide ad & tracking blocking DNS server (Port 3000)
+    category: Network & Security
+    ports: 53/tcp, 53/udp, 3000/tcp
+  pkg_32:
+    name: Watchtower Image Updater
+    desc: Automates Docker container base image updates
+    category: Virtualization & Containers
+    ports: No default ports
+  pkg_33:
+    name: Cloudflare Tunnel Client
+    desc: Secure tunnels to local services without open router ports
+    category: Network & Security
+    ports: No default ports
+  pkg_34:
+    name: Go (Golang) Toolchain
+    desc: Official Go compiler and development binaries
+    category: Development Runtimes
+    ports: No default ports
+  pkg_35:
+    name: Rust & Cargo Environment
+    desc: Modern systems programming toolchain and cargo
+    category: Development Runtimes
+    ports: No default ports
+  pkg_36:
+    name: Netdata Real-Time Monitor
+    desc: Real-time performance monitoring dashboard (Port 19999)
+    category: Monitoring
+    ports: 19999/tcp
+  pkg_37:
+    name: MinIO S3 Object Storage
+    desc: High-performance S3-compatible cloud object store
+    category: File Management
+    ports: 9000/tcp, 9001/tcp
+  pkg_38:
+    name: ServerDeck Ultimate Stack
+    desc: Complete all-in-one software stack deployment
+    category: All-in-One
+    ports: All defined ports
+bot:
+  db_title: ServerDeck Database Engine
+  db_unavailable: MariaDB service is not running.
+  db_total: Total Databases
+  db_size: Total Size
+  status_title: ServerDeck System Telemetry

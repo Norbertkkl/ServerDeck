@@ -1,0 +1,476 @@
+# ==============================================================================
+# ServerDeck - Kompletny Słownik Tłumaczeń Języka Polskiego (locales/pl.yaml)
+# ==============================================================================
+
+common:
+  title: SERVERDECK
+  tagline: Profesjonalny Kokpit Telemetrii i Zarzadzania Serwerem Linux
+  status_active: AKTYWNY
+  status_paused: WSTRZYMANY
+  status_not_installed: NIEZAINSTALOWANY
+  status_installed: ZAINSTALOWANY
+  status_running: URUCHOMIONY
+  status_stopped: ZATRZYMANY
+  status_exited: ZAKONCZONY
+  status_healthy: ZDROWE
+  status_degraded: ZDEGRADOWANE
+  status_passed: ZALICZONY
+  status_failed: BLAD
+  status_system_schema: Schemat Systemowy
+  status_user_db: Baza Uzytkownika
+  status_protected_user: Chroniony Uzytkownik Systemowy
+  status_superuser: Administrator Superuser
+  status_standard_user: Standardowy Uzytkownik
+  refresh: 'Interwal: {rate}s'
+  confirm_yes: Nacisnij [y/Enter] aby potwierdzic
+  confirm_no: Nacisnij [n/ESC] aby anulowac
+  confirm: Nacisnij [Y] aby potwierdzic, [N] aby anulowac
+  error: 'Blad: {msg}'
+  success: 'Sukces: {msg}'
+  theme_label: 'Motyw: {theme}'
+  footer_hint: ' [1-9,0/Tab] Karty | [l] Jezyk: {lang} | [c] Motyw: {theme} | [+/-]
+    {rate:.1f}s | [p] Pauza | [q] Wyjdz '
+  prompt_prefix: POLECENIE
+  status_prefix: STATUS
+  goodbye: ServerDeck zostal zatrzymany. Do widzenia!
+  no_data: Brak dostepnych danych
+  unknown: Nieznany
+  none: Brak
+  'yes': Tak
+  'no': Nie
+  enabled: Wlaczone
+  disabled: Wylaczone
+  loading: Wczytywanie danych...
+  bytes_unit: Bajt
+  kbytes_unit: KB
+  mbytes_unit: MB
+  gbytes_unit: GB
+  tbytes_unit: TB
+nav:
+  tab_1: Przeglad
+  tab_2: Procesy
+  tab_3: Siec
+  tab_4: Sensory
+  tab_5: Dyski i SMART
+  tab_6: Pamiec
+  tab_7: Bazy i Docker
+  tab_8: Logi
+  tab_9: Zapora UFW
+  tab_0: Centrum Pakietow
+  switch_hint: Wybierz cyfre 0-9 lub nacisnij [Tab] aby przelaczyc sekcje
+  cycle_hint: Naciskaj [Tab] w celu cyklicznego przelaczania kart
+  lang_toggle_hint: Wcisnij [l] aby natychmiast przelaczyc jezyk (PL/EN)
+tab1_overview:
+  system_vitals: INFORMACJE O SPRZECIE I SYSTEMIE
+  model: Model
+  motherboard: Plyta Glowna
+  os: System
+  kernel: Kernel
+  load: Obciazenie
+  hostname: Nazwa Hosta
+  uptime: Czas Pracy
+  boot_time: Czas Rozruchu
+  logged_users: Zalogowani Uzytkownicy
+  processes: Procesy
+  cpu_title: UZYCIE CPU I WYKRES UZYCIA
+  cpu_model: Model CPU
+  cpu_cores: Rdzenie
+  cpu_freq: Taktowanie
+  cpu_governor: Zarzadca CPU
+  cpu_usage: Uzycie
+  memory_title: WYKRES PAMIECI (RAM I SWAP)
+  ram: RAM
+  swap: SWAP
+  ram_used_total: '{used} / {total}'
+  network_title: PRZEPUSTOWOSC SIECI I INTERFEJSY
+  live_speed: Predkosc na zywo
+  rx: Pobieranie (RX)
+  tx: Wysylanie (TX)
+  total: Lacznie
+  storage_title: MAGAZYNY DANYCH I PARTYCJE
+  webhook_title: INTEGRACJA DISCORD WEBHOOK I TELEMETRIA
+  webhook_status_active: '[ AKTYWNY ]'
+  webhook_status_configured_disabled: '[ SKONFIGUROWANY / WYLACZONY ]'
+  webhook_status_not_configured: '[ NIE SKONFIGUROWANY ]'
+  webhook_url: Webhook
+  webhook_config: Config
+  webhook_shortcuts: 'Skroty: [w] Wymus Raport Telemetrii | [t] Testuj Alert | [e]
+    Eksportuj JSON'
+tab2_processes:
+  title: AKTYWNE PROCESY SYSTEMOWE (POSORTOWANE WEDLUG {sort})
+  col_pid: PID
+  col_user: UZYTKOWNIK
+  col_cpu: CPU%
+  col_mem: MEM%
+  col_state: STAN
+  col_command: POLECENIE / PROCES
+  scroll_hint: Wyswietlanie {start}-{end} z {total} procesow (Uzyj ↑ / ↓ / PageUp
+    / PageDown)
+  shortcuts: 'Skroty: [s] Sortuj CPU | [m] Sortuj RAM | [/] Filtruj | [k] Zabij proces
+    | [↑/↓] Wybierz'
+  kill_prompt: 'Podaj PID procesu do zakonczenia (domyslnie: {pid}) [Enter: SIGTERM,
+    9: SIGKILL, ESC: Anuluj]: '
+  kill_success: Wyslano sygnal SIG{sig} do procesu o numerze PID {pid}
+  kill_error: 'Nie udalo sie zakonczyc procesu o PID {pid}: {error}'
+  filter_prompt: 'Filtruj procesy: {filter} (Wcisnij Enter lub ESC aby zatwierdzic)'
+tab3_network:
+  throughput_title: PRZEPUSTOWOSC SIECI (W CZASIE RZECZYWISTYM RX / TX)
+  ports_title: NASLUCHUJACE PORTY I USLUGI SYSTEMOWE
+  download_rx: 'Pobieranie (RX):'
+  upload_tx: 'Wysylanie (TX):'
+  dns: 'Serwery DNS:'
+  col_port: PORT
+  col_proto: PROTOKOL
+  col_bind: ADRES POWIAZANIA
+  col_service: ROZPOZNANA USLUGA
+  no_ports: Brak wykrytych portow nasluchujacych lub brak uprawnien.
+  ip: 'IP:'
+  mac: 'MAC:'
+tab4_sensors:
+  hardware_title: SPECYFIKACJA PLYTY GLOWNEJ, BIOS I OBUDOWY
+  sensors_title: CZUJNIKI TERMICZNE I TEMPERATURY SPRZETU
+  vendor: 'Producent:'
+  model: 'Model:'
+  motherboard: 'Plyta Glowna:'
+  version: 'Wersja:'
+  bios_vendor: 'Producent BIOS:'
+  bios_ver: 'Wersja BIOS:'
+  gpu_devices: 'Karty Graficzne GPU:'
+  no_sensors: Brak fizycznych czujnikow temperatury (np. wirtualizacja KVM/Docker).
+tab5_disks:
+  drives_title: FIZYCZNE DYSKI TWARDE I DIAGNOSTYKA S.M.A.R.T.
+  partitions_title: BLOKOWE URZADZENIA PAMIECI I TABELA PARTYCJI
+  device: URZADZENIE
+  model: MODEL
+  capacity: POJEMNOSC
+  type: TYP
+  health: STAN
+  temp: TEMP
+  poh: POH
+  tbw: TBW
+  reallocated: REALOKOWANE
+  crc_errors: BLEDY CRC
+  mount_point: PUNKT MONTOWANIA
+  fs_type: SYSTEM PLIKOW
+  usage: ZAJETE
+  free_space: WOLNE
+  mount_prompt: 'Podaj punkt montowania dla {dev}: {path} (Enter=Montuj, ESC=Anuluj)'
+  unmount_prompt: 'Czy na pewno chcesz odmontowac {dev}? [y/Enter: Odmontuj, n/ESC:
+    Anuluj]'
+  format_prompt: 'Sformatuj {dev} jako system plikow: {fs} (np. ext4, btrfs, vfat
+    | Enter=Format, ESC=Anuluj)'
+  smart_start: Uruchomiono test SMART na {dev} w tle...
+  fsck_start: Uruchomiono sprawdzanie spojnosci FSCK na {dev} w tle...
+  format_start: Formatowanie partycji {dev} jako {fs} w tle...
+  mounted_success: Zamontowano {dev} w katalogu {path}
+  unmounted_success: Pomyslnie odmontowano partycje {dev}
+  shortcuts: 'Skroty: [m] Montuj | [u] Odmontuj | [c] Test FSCK | [t] Test SMART |
+    [f] Formatuj | [↑/↓] Wybierz'
+tab6_memory:
+  title: PODSYSTEM PAMIECI I CACHE JADRA
+  services_title: TELEMETRIA KLUCZOWYCH USLUG SYSTEMOWYCH
+  total_ram: Calkowity Fizyczny RAM
+  used_ram: Zajeta Pamiec
+  free_ram: Wolna Pamiec
+  cached: Pamiec Podreczna (Cache)
+  buffers: Bufory Systemowe
+  swap: Wykorzystanie SWAP
+  dirty: Brudne Strony (Dirty)
+  slab: Struktury Jadra (Slab)
+  anon: Pamiec Anonimowa
+  snapshot_title: EKSPORT ZRZUTU DANYCH JSON I ALERTY DISCORD
+  export_hint: 'Wcisnij [e] aby zapisac zrzut danych do: {path}'
+  discord_hint: Wcisnij [t] aby wyslac testowe powiadomienie na skonfigurowany Webhook
+    Discord.
+  snapshot_saved: Pomyslnie wyeksportowano zrzut danych do {path}
+  discord_sent: Testowe powiadomienie Discord zostalo wyslane!
+  discord_no_url: Brak skonfigurowanego adresu Discord Webhook w bot.yaml
+  discord_error: 'Blad wysylania Discord: {msg}'
+tab7_db_docker:
+  infrastructure_title: INFRASTRUKTURA BAZ DANYCH I KONTENEROW
+  docker_engine: Silnik Docker
+  mariadb_engine: MariaDB / MySQL
+  postgres_engine: PostgreSQL DB
+  redis_engine: Pamiec Cache Redis
+  running_stat: '{running}/{total} aktywnych'
+  subview_containers: KONTENERY DOCKER
+  subview_databases: SCHEMATY BAZ DANYCH
+  subview_users: KONTA UZYTKOWNIKOW I UPRAWNIENIA
+  col_container_name: NAZWA KONTENERA
+  col_image: OBRAZ DOCKER
+  col_state: STAN
+  col_ports: ZMAPOWANE PORTY
+  col_id: CONTAINER ID
+  col_db_name: NAZWA BAZY
+  col_tables: TABELE
+  col_size_mb: ROZMIAR (MB)
+  col_type: KLASYFIKACJA
+  col_username: NAZWA UZYTKOWNIKA
+  col_host: DOZWOLONY HOST
+  col_user_type: TYP KONTA
+  deploy_wizard_prompt: 'Kreator Kontenerow: [1] Nginx [2] Redis [3] Portainer [4]
+    Postgres [5] MariaDB [6] UptimeKuma [7] AdGuard [8] Watchtower [ESC: Anuluj]'
+  delete_container_warn: 'Czy na pewno chcesz bezpowrotnie USUNAC kontener {name}?
+    [y/Enter: Usun, n/ESC: Anuluj]'
+  create_db_prompt: 'Wprowadz nazwe nowej bazy danych MariaDB: {name} (Enter=Stworz,
+    ESC=Anuluj)'
+  drop_db_warn: 'Czy na pewno chcesz BEZPOWROTNIE USUNAC baze danych {name}? [y/Enter:
+    Usun, n/ESC: Anuluj]'
+  create_user_prompt: 'Tworzenie uzytkownika bazy (format: uzytkownik@host haslo):
+    {input} (Enter=Stworz, ESC=Anuluj)'
+  drop_user_warn: 'Czy na pewno chcesz usunac uzytkownika bazy {user}? [y/Enter: Usun,
+    n/ESC: Anuluj]'
+  grant_priv_prompt: 'Nadaj ALL PRIVILEGES dla ''{user}'' na bazie danych: {name}
+    (Enter=Nadaj, ESC=Anuluj)'
+  reset_pass_prompt: 'Wprowadz nowe haslo dla uzytkownika ''{user}'': {pass} (Enter=Zmien,
+    ESC=Anuluj)'
+  shortcuts_containers: 'Skroty: [v] Zmien Podwidok | [s] Start/Stop | [r] Restart
+    | [c] Nowy Kontener | [x] Usun | [↑/↓] Wybierz'
+  shortcuts_databases: 'Skroty: [v] Zmien Podwidok | [n] Utworz Baze | [x] Usun Baze
+    | [↑/↓] Wybierz'
+  shortcuts_users: 'Skroty: [v] Zmien Podwidok | [u] Utworz Uzytkownika | [k] Usun
+    Uzytkownika | [g] Nadaj Uprawnienia | [p] Zresetuj Haslo | [↑/↓] Wybierz'
+  title: Bazy Danych i Kontenery
+  db_user_stat: Uzytkownicy
+  redis_store: Magazyn Kluczy
+  view_containers: Kontenery Docker
+  view_databases: Bazy Danych
+  view_users: Uzytkownicy Bazy
+  switch_view: '[Tab/v] Przelacz Podwidok'
+  docker_header: KONTENERY DOCKER
+  no_containers: Brak aktywnych kontenerow Docker w systemie.
+  db_header: BAZY DANYCH (MARIADB / MYSQL)
+  user_header: KONTA UZYTKOWNIKOW I UPRAWNIENIA
+tab8_logs:
+  title: DZIENNIK ZDARZEN SYSTEMOWYCH (SYSTEMD JOURNALCTL)
+  shortcuts: 'Skroty: [Spacja] Odswiez wpisy | [q] Wyjdz | Logi odswiezane automatycznie
+    co {rate:.1f}s'
+tab9_firewall:
+  title: ZAPORA SIECIOWA UFW (UNCOMPLICATED FIREWALL)
+  status_label: 'Stan Zapory:'
+  logging_label: 'Poziom Logowania:'
+  policies_label: 'Polityki Domyslne:'
+  col_num: NR
+  col_to: CEL / PORT
+  col_action: AKCJA
+  col_from: ZRODLO
+  col_comment: KOMENTARZ
+  blocked_title: OSTATNIO ZABLOKOWANE PAKIETY SIECIOWE
+  no_blocked: Brak zablokowanych pakietow w dzienniku kernela.
+  add_rule_prompt: 'Podaj regule UFW do dodania (np. allow 80/tcp, allow 22, deny
+    3306): {rule} (Enter=Dodaj, ESC=Anuluj)'
+  delete_confirm: 'Czy na pewno chcesz usunac regule UFW {rule}? [y/Enter: Usun, n/ESC:
+    Anuluj]'
+  shortcuts: 'Skroty: [u] Wlacz/Wylacz UFW | [a] Dodaj Regule | [d] Usun Regule |
+    [r] Przeladuj | [/] Filtruj | [↑/↓] Wybierz'
+tab10_software_hub:
+  title: CENTRUM OPROGRAMOWANIA I SRODOWISKA URUCHOMIENIOWE ({installed}/{total} Aktywnych)
+  packages_title: AUTOMATYCZNE PAKIETY ({curr}/{total})
+  col_package: PAKIET
+  col_status: STATUS
+  col_description: OPIS
+  scroll_hint: Wyswietlanie {start}-{end} z {total} pakietow (Uzyj ↑ / ↓ aby przewijac)
+  shortcuts: 'Skroty: [Enter]/[i] Instaluj | [u]/[x] Odinstaluj | [r] Restart | [↑/↓]
+    Wybierz'
+  console_title_running: 'KONSOLA MENEDZERA PAKIETOW (INSTALACJA: {task})'
+  console_title_idle: KONSOLA MENEDZERA PAKIETOW (OCZEKIWANIE - GOTOWA)
+  uninstall_warn: 'Czy na pewno chcesz calkowicie ODINSTALOWAC i wyczyscic pakiet
+    {name}? [y/Enter: Usun, n/ESC: Anuluj]'
+packages:
+  pkg_1:
+    name: Serwer OpenSSH
+    desc: Instalacja openssh-server, aktywacja sshd, port 22
+    category: Siec i Zdalny Dostep
+    ports: 22/tcp
+  pkg_2:
+    name: Serwer SFTP i VSFTPD
+    desc: Bezpieczny transfer plikow FTP/SFTP (vsftpd)
+    category: Zarzadzanie Plikami
+    ports: 20/tcp, 21/tcp, 40000-40100/tcp
+  pkg_3:
+    name: Baza Danych MariaDB / MySQL
+    desc: Instalacja silnika bazy danych MariaDB i zabezpieczenie
+    category: Bazy Danych
+    ports: 3306/tcp
+  pkg_4:
+    name: Silnik Docker Engine (CE)
+    desc: Oficjalne srodowisko Docker CE oraz containerd
+    category: Wirtualizacja i Kontenery
+    ports: Brak domyslnych
+  pkg_5:
+    name: Wtyczka Docker Compose v2
+    desc: Wtyczka docker-compose v2 do definiowania uslug
+    category: Wirtualizacja i Kontenery
+    ports: Brak domyslnych
+  pkg_6:
+    name: Serwer WWW Nginx
+    desc: Wydajny serwer HTTP / Reverse Proxy (Porty 80/443)
+    category: Serwery WWW
+    ports: 80/tcp, 443/tcp
+  pkg_7:
+    name: Serwer WWW Apache2
+    desc: Klasyczny serwer Apache2 z modulem mod_rewrite
+    category: Serwery WWW
+    ports: 80/tcp, 443/tcp
+  pkg_8:
+    name: Certyfikaty SSL Let's Encrypt
+    desc: Automatyczne darmowe certyfikaty SSL/TLS Certbot
+    category: Bezpieczenstwo
+    ports: 80/tcp, 443/tcp
+  pkg_9:
+    name: Udostępnianie Plików Samba
+    desc: Współdzielenie plików SMB/CIFS w sieci LAN
+    category: Zarzadzanie Plikami
+    ports: 139/tcp, 445/tcp, 137/udp, 138/udp
+  pkg_10:
+    name: Konsola Web Cockpit GUI
+    desc: Zarzadzanie serwerem przez przegladarke (Port 9090)
+    category: Panele Administracyjne
+    ports: 9090/tcp
+  pkg_11:
+    name: Panel Portainer CE Docker
+    desc: Graficzny interfejs do zarzadzania kontenerami (Port 9443)
+    category: Wirtualizacja i Kontenery
+    ports: 9000/tcp, 9443/tcp
+  pkg_12:
+    name: Serwer WireGuard VPN
+    desc: Nowoczesny, szybki i bezpieczny tunel VPN
+    category: Siec i Bezpieczenstwo
+    ports: 51820/udp
+  pkg_13:
+    name: Prywatna Siec Tailscale VPN
+    desc: Siatkowa siec VPN typu Zero-Config
+    category: Siec i Bezpieczenstwo
+    ports: 41641/udp
+  pkg_14:
+    name: Ochrona Fail2ban Security
+    desc: Automatyczna ochrona przed atakami brute-force
+    category: Bezpieczenstwo
+    ports: Wszystkie porty (Dynamiczne reguly)
+  pkg_15:
+    name: Srodowisko Java 8 (OpenJDK 8)
+    desc: Srodowisko uruchomieniowe Java 8 JRE
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_16:
+    name: Srodowisko Java 17 LTS
+    desc: Stabilne srodowisko Java 17 OpenJDK
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_17:
+    name: Srodowisko Java 21 LTS
+    desc: Nowoczesne srodowisko Java 21 LTS OpenJDK
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_18:
+    name: Srodowisko Java 25 / Latest
+    desc: Najnowsze wydanie OpenJDK Java
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_19:
+    name: Srodowisko Node.js LTS i NPM
+    desc: Srodowisko JavaScript Node.js oraz menedzer NPM
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_20:
+    name: Menedzer Procesow PM2
+    desc: Produkcyjny menedzer procesow Node.js i Python
+    category: Narzędzia Systemowe
+    ports: Brak domyslnych
+  pkg_21:
+    name: Synchronizacja Chmury Rclone
+    desc: Synchronizacja danych z chmura (Google Drive, S3, Dropbox)
+    category: Kopie Zapasowe
+    ports: Brak domyslnych
+  pkg_22:
+    name: Kopie Zapasowe Borg i Restic
+    desc: Zaszyfrowany zestaw do tworzenia kopii zapasowych
+    category: Kopie Zapasowe
+    ports: Brak domyslnych
+  pkg_23:
+    name: Telemetria Prometheus Node Exporter
+    desc: Zbiornik telemetrii sprzetowej na porcie 9100
+    category: Monitoring
+    ports: 9100/tcp
+  pkg_24:
+    name: Zaleznosci Panelu Pterodactyl
+    desc: Zaleznosci Redis, PHP, WWW dla panelu serwerow
+    category: Panele Administracyjne
+    ports: 80/tcp, 443/tcp, 8080/tcp, 2022/tcp
+  pkg_25:
+    name: Podstawowe Narzedzia i SMART
+    desc: smartmontools, htop, tmux, ncdu, git, curl
+    category: Narzędzia Systemowe
+    ports: Brak domyslnych
+  pkg_26:
+    name: Konfiguracja Zapory UFW
+    desc: Automatyczne utwardzenie polityk i portow serwera
+    category: Bezpieczenstwo
+    ports: 22/tcp, 80/tcp, 443/tcp
+  pkg_27:
+    name: Baza Danych PostgreSQL
+    desc: Zaawansowany silnik bazy danych SQL PostgreSQL (Port 5432)
+    category: Bazy Danych
+    ports: 5432/tcp
+  pkg_28:
+    name: Pamiec Cache Redis
+    desc: Ultraszybki magazyn struktur danych w pamieci RAM (Port 6379)
+    category: Bazy Danych
+    ports: 6379/tcp
+  pkg_29:
+    name: Serwer WWW Caddy
+    desc: Nowoczesny serwer HTTP/2 z automatycznym HTTPS
+    category: Serwery WWW
+    ports: 80/tcp, 443/tcp
+  pkg_30:
+    name: Monitoring Uptime Kuma
+    desc: Panel monitorowania dostepnosci uslug z powiadomieniami (Port 3001)
+    category: Monitoring
+    ports: 3001/tcp
+  pkg_31:
+    name: Serwer DNS AdGuard Home
+    desc: Lokalny serwer DNS blokujacy reklamy i zlosliwe domeny
+    category: Siec i Bezpieczenstwo
+    ports: 53/tcp, 53/udp, 3000/tcp
+  pkg_32:
+    name: Automatyczny Aktualizator Watchtower
+    desc: Automatyczne aktualizacje obrazow dzialajacych kontenerow Docker
+    category: Wirtualizacja i Kontenery
+    ports: Brak domyslnych
+  pkg_33:
+    name: Tunel Cloudflare Tunnel
+    desc: Bezpieczny dostep do uslug lokalnych bez otwierania portow w routerze
+    category: Siec i Bezpieczenstwo
+    ports: Brak domyslnych
+  pkg_34:
+    name: Kompilator Go (Golang)
+    desc: Oficjalny kompilator jezyka Go oraz narzedzia deweloperskie
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_35:
+    name: Srodowisko Rust i Cargo
+    desc: Nowoczesny kompilator jezyka Rust oraz menedzer pakietow Cargo
+    category: Srodowiska Programistyczne
+    ports: Brak domyslnych
+  pkg_36:
+    name: Monitoring w Czasie Rzeczywistym Netdata
+    desc: Zaawansowany panel monitorowania wydajnosci w czasie rzeczywistym (Port
+      19999)
+    category: Monitoring
+    ports: 19999/tcp
+  pkg_37:
+    name: Magazyn Obiektowy MinIO S3
+    desc: Wysokowydajny, kompatybilny z Amazon S3 lokalny magazyn plikow
+    category: Zarzadzanie Plikami
+    ports: 9000/tcp, 9001/tcp
+  pkg_38:
+    name: Pakiet All-in-One ServerDeck Ultimate
+    desc: Kompleksowa instalacja wszystkich kluczowych modulow oprogramowania
+    category: Pakiety Zbiorcze
+    ports: Wszystkie zdefiniowane
+bot:
+  db_title: ServerDeck - Silnik Baz Danych
+  db_unavailable: Usluga MariaDB / MySQL nie jest uruchomiona.
+  db_total: Lacznie Baz
+  db_size: Calkowity Rozmiar
+  status_title: ServerDeck - Telemetria Systemowa

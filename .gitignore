@@ -1,0 +1,29 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.venv/
+.venv_npm/
+venv/
+ENV/
+env/
+
+# Distribution & Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Secrets and Local Runtime Data
+.env
+data.json
+snapshot.json
+
+# IDEs and OS files
+.idea/
+.vscode/
+*.swp
+.DS_Store

@@ -1,0 +1,31 @@
+[Unit]
+Description=ServerDeck Autonomous Discord Bot Daemon
+After=network.target network-online.target docker.service mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=serverdeck
+Group=serverdeck
+WorkingDirectory=/var/lib/serverdeck
+EnvironmentFile=-/etc/serverdeck/.env
+ExecStart=/usr/local/bin/serverdeck-bot
+Restart=always
+RestartSec=5s
+Environment=PYTHONUNBUFFERED=1
+
+# Security & Sandboxing
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/etc/serverdeck
+ReadWritePaths=/var/lib/serverdeck
+CapabilityBoundingSet=
+
+# Native systemd-journald logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

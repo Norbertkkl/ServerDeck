@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "serverdeck-cli"
+version = "1.0.0"
+description = "Linux server monitoring dashboard and management tool."
+readme = "README.md"
+authors = [
+    { name = "ServerDeck Team", email = "kontakt.pan.n@gmail.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = [
+    "pyyaml>=6.0.1",
+    "psutil>=5.9.0",
+    "discord.py>=2.3.0"
+]
+keywords = [
+    "server",
+    "homelab",
+    "telemetry",
+    "tui",
+    "dashboard",
+    "monitoring",
+    "discord-bot",
+    "docker",
+    "mariadb",
+    "ufw",
+    "smart",
+    "linux",
+    "sysadmin"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Communications :: Chat"
+]
+
+[project.urls]
+Homepage = "https://github.com/Norbertkkl/ServerDeck"
+Repository = "https://github.com/Norbertkkl/ServerDeck"
+Documentation = "https://github.com/Norbertkkl/ServerDeck#readme"
+Issues = "https://github.com/Norbertkkl/ServerDeck/issues"
+
+[project.scripts]
+serverdeck-cli = "serverdeck.cli:main"
+serverdeck = "serverdeck.cli:main"
+serverdeck-bot = "serverdeck.bot.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["serverdeck", "serverdeck.*"]
+
+[tool.setuptools.package-data]
+serverdeck = [
+    "locales/*.yaml",
+    "locales/*.yml",
+    "templates/*.yaml",
+    "templates/*.yml",
+    "templates/*.service"
+]
+

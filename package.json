@@ -1,0 +1,37 @@
+{
+  "name": "serverdeck",
+  "version": "1.0.0",
+  "description": "Linux TUI dashboard and Discord telemetry daemon for homelab monitoring",
+  "main": "bin/serverdeck.js",
+  "bin": {
+    "serverdeck": "bin/serverdeck.js"
+  },
+  "scripts": {
+    "start": "node bin/serverdeck.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Norbertkkl/ServerDeck.git"
+  },
+  "keywords": [
+    "tui",
+    "monitoring",
+    "dashboard",
+    "linux",
+    "discord-bot",
+    "homelab"
+  ],
+  "author": "Norbert",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "bin/",
+    "serverdeck/",
+    "app.py",
+    "requirements.txt",
+    "config.yaml",
+    "bot.yaml"
+  ]
+}
