@@ -31,10 +31,12 @@ def get_mariadb_databases(force: bool = False) -> List[Dict[str, Any]]:
             return _db_cache["dbs"]
 
     sql = (
-        "SELECT table_schema, COUNT(*), "
-        "COALESCE(SUM(data_length + index_length), 0) "
-        "FROM information_schema.tables "
-        "GROUP BY table_schema;"
+        "SELECT s.schema_name, COUNT(t.table_name), "
+        "COALESCE(SUM(t.data_length + t.index_length), 0) "
+        "FROM information_schema.schemata s "
+        "LEFT JOIN information_schema.tables t ON s.schema_name = t.table_schema "
+        "GROUP BY s.schema_name "
+        "ORDER BY s.schema_name;"
     )
     ok, out = mariadb_exec(sql)
     dbs = []
@@ -50,6 +52,7 @@ def get_mariadb_databases(force: bool = False) -> List[Dict[str, Any]]:
                 dbs.append({
                     "name": name,
                     "tables": tbl_cnt,
+                    "size_bytes": sz_bytes,
                     "size_mb": sz_mb,
                     "is_system": is_sys
                 })

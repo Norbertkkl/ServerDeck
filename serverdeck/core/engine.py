@@ -456,10 +456,12 @@ def run_monitor():
                             need_hard_data_refresh = True
                         is_creating_db = False
                         db_input_name = ""
+                        need_full_clear = True
                         need_immediate_render = True
                     elif key == 'ESC':
                         is_creating_db = False
                         db_input_name = ""
+                        need_full_clear = True
                         need_immediate_render = True
                     elif key in ('\x7f', '\x08', 'DELETE'):
                         db_input_name = db_input_name[:-1]
@@ -478,9 +480,11 @@ def run_monitor():
                             selected_db_idx = max(0, selected_db_idx - 1)
                             need_hard_data_refresh = True
                         is_dropping_db = False
+                        need_full_clear = True
                         need_immediate_render = True
                     elif key in ('n', 'N', 'ESC'):
                         is_dropping_db = False
+                        need_full_clear = True
                         need_immediate_render = True
             elif is_creating_db_user:
                 if key:

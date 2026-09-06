@@ -5,9 +5,8 @@ from serverdeck.managers.database import get_mariadb_databases, get_mariadb_user
 from serverdeck.tui.theme import colorize
 from serverdeck.tui.components import (
     get_term_layout, render_box_header, render_box_line, render_box_footer,
-    pad_visible
+    pad_visible, format_bytes
 )
-
 def render_tab_7_db_and_docker(
     theme: Dict[str, Any],
     subview: int = 0,
