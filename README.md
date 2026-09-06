@@ -26,16 +26,18 @@ ServerDeck provides an all-in-one terminal console and telemetry engine built fo
 ## Table of Contents
 
 1. [Architectural Overview](#architectural-overview)
-2. [Installation and Launch Methods](#installation-and-launch-methods)
-3. [TUI Dashboard Guide](#tui-dashboard-guide)
-4. [Deep Dive into Tab 7 (Docker and Database Management)](#deep-dive-into-tab-7-docker-and-database-management)
-5. [Keyboard Navigation and Shortcuts](#keyboard-navigation-and-shortcuts)
-6. [Discord Sentinel Bot and Telemetry Webhooks](#discord-sentinel-bot-and-telemetry-webhooks)
-7. [Systemd Service Management](#systemd-service-management)
-8. [Command Line Interface Reference](#command-line-interface-reference)
-9. [Project Organization](#project-organization)
-10. [Troubleshooting and Diagnostic Procedures](#troubleshooting-and-diagnostic-procedures)
-11. [License](#license)
+2. [Filesystem Hierarchy and Storage Layout](#filesystem-hierarchy-and-storage-layout)
+3. [Comprehensive Installation Workflows](#comprehensive-installation-workflows)
+4. [Configuration Files and Data Management](#configuration-files-and-data-management)
+5. [TUI Dashboard Guide](#tui-dashboard-guide)
+6. [Deep Dive into Tab 7 (Docker and Database Management)](#deep-dive-into-tab-7-docker-and-database-management)
+7. [Keyboard Navigation and Shortcuts](#keyboard-navigation-and-shortcuts)
+8. [Discord Sentinel Bot and Telemetry Webhooks](#discord-sentinel-bot-and-telemetry-webhooks)
+9. [Systemd Service Management](#systemd-service-management)
+10. [Command Line Interface Reference](#command-line-interface-reference)
+11. [Project Organization](#project-organization)
+12. [Troubleshooting and Diagnostic Procedures](#troubleshooting-and-diagnostic-procedures)
+13. [License](#license)
 
 ---
 
@@ -49,74 +51,220 @@ Interface elements dynamically adjust between 80-column terminal displays and wi
 
 ---
 
-## Installation and Launch Methods
+## Filesystem Hierarchy and Storage Layout
 
-### 1. Zero-Install Execution with NPX (Recommended)
+ServerDeck follows Linux Filesystem Hierarchy Standards (FHS) to isolate configuration, runtime state, binary entrypoints, and virtual environments across privileged and unprivileged execution environments.
 
-When Node.js (version 16 or newer) and Python 3 are present on the target machine, ServerDeck runs immediately without prior repository cloning or manual virtual environment preparation.
+### System Configuration Locations (`/etc/serverdeck`)
+
+When running under root permissions or when installed via `install.sh`, all configuration assets reside inside `/etc/serverdeck`.
+
+| File Path | Recommended Permissions | Default Owner | Operational Purpose |
+| :--- | :---: | :---: | :--- |
+| `/etc/serverdeck/config.yaml` | `0644` | `root:serverdeck` | Dashboard preferences, refresh intervals, active theme, and locale |
+| `/etc/serverdeck/bot.yaml` | `0640` | `root:serverdeck` | Discord bot channel mappings, allowed user IDs, and command policies |
+| `/etc/serverdeck/.env` | `0640` | `root:serverdeck` | Sensitive secrets, Discord bot token, webhook URL, and alert thresholds |
+
+When running as an unprivileged user without write permissions to `/etc`, ServerDeck falls back to the user directory `~/.config/serverdeck/`.
+
+### Persistent State and Runtime Data (`/var/lib/serverdeck`)
+
+Telemetry snapshots, operational history, and runtime data files are saved into `/var/lib/serverdeck`.
+
+| File Path | Recommended Permissions | Default Owner | Operational Purpose |
+| :--- | :---: | :---: | :--- |
+| `/var/lib/serverdeck/data.json` | `0660` | `serverdeck:serverdeck` | Historical rolling metrics for CPU, RAM, and network throughput |
+| `/var/lib/serverdeck/snapshot.json` | `0660` | `serverdeck:serverdeck` | Complete sanitized telemetry dump generated on demand or export (`e`) |
+
+If `/var/lib/serverdeck` is unavailable or read-only, ServerDeck routes state files to `~/.local/state/serverdeck/`, with a secondary fallback to the current working directory.
+
+### Executable Binary Entrypoints
+
+Global executable wrappers bridge Node.js and Python runtimes to ensure ServerDeck is universally accessible from any working directory.
+
+| Binary Path | Mode | Purpose | Target Execution Script |
+| :--- | :---: | :--- | :--- |
+| `/usr/local/bin/serverdeck` | `0755` | Primary systemwide interactive TUI monitor | `/opt/serverdeck/venv/bin/python3 app.py` |
+| `/usr/local/bin/serverdeck-bot` | `0755` | Standalone Discord Sentinel daemon | `/opt/serverdeck/venv/bin/python3 -m serverdeck.bot.main` |
+| `npm bin -g`/`serverdeck` | `0755` | Global NPM wrapper launcher | `bin/serverdeck.js` |
+
+### Python Virtual Environment Paths
+
+To comply with PEP 668 ("externally managed environments") on modern distributions such as Ubuntu 24.04 and Debian 12, ServerDeck never pollutes system Python packages. It provisions isolated virtual environments based on the installation mechanism:
+
+| Installation Mode | Virtual Environment Directory | Description |
+| :--- | :--- | :--- |
+| **System Installer (`install.sh`)** | `/opt/serverdeck/venv` | Shared production environment owned by `root:serverdeck` (`0755`) |
+| **NPM / NPX Launcher (`bin/serverdeck.js`)** | `~/.local/state/serverdeck/venv_npm` | User-scoped auto-provisioned virtualenv when repo is read-only |
+| **Local NPX in Repo** | `./.venv_npm` | Local workspace environment if repository directory is writable |
+| **Git Source Clone** | `./.venv` | Standard developer virtual environment created via `python3 -m venv` |
+
+### Systemd Service Unit
+
+The automated installer deploys a hardened systemd unit file at:
+```text
+/etc/systemd/system/serverdeck-bot.service
+```
+
+This service runs under the unprivileged system account `serverdeck`, links `/etc/serverdeck/.env` into process memory, locks write access to system binaries via `ProtectSystem=strict`, restricts home access via `ProtectHome=read-only`, and constrains data writes exclusively to `/var/lib/serverdeck`.
+
+---
+
+## Comprehensive Installation Workflows
+
+ServerDeck supports five distinct installation workflows to suit homelabs, developer workstations, and production servers.
+
+### Method 1: Zero-Install Execution with NPX (Instant)
+
+This method requires Node.js (v16+) and Python 3. It downloads nothing permanently into system directories and requires zero configuration to test.
 
 ```bash
 npx serverdeck
 ```
 
-The NPX launcher downloads the package from the official NPM registry, configures an isolated local runtime environment, verifies required Python libraries, and starts the dashboard.
+Execution sequence:
+1. NPX pulls `serverdeck@latest` tarball directly into the local npm cache.
+2. The wrapper `bin/serverdeck.js` executes and resolves a valid Python 3 interpreter.
+3. If an existing virtual environment is not found, it initializes `~/.local/state/serverdeck/venv_npm`.
+4. It verifies essential modules (`psutil`, `yaml`). If missing, it installs `requirements.txt` into the private virtual environment.
+5. It attaches the raw terminal stream to `serverdeck.app` and boots the TUI dashboard.
 
-### 2. Global Installation with NPM
+### Method 2: Global Installation via NPM
 
-Installing ServerDeck globally places the executable directly inside the system path.
+This method registers `serverdeck` as a permanent global command across your system shell.
 
 ```bash
 npm install -g serverdeck
 serverdeck
 ```
 
-### 3. Production Deployment with Bash and Systemd (Ubuntu and Debian)
+Updating to the newest release is performed by running:
+```bash
+npm update -g serverdeck
+```
 
-For long-term production deployments on dedicated hosts, the automated installation script provisions a dedicated system user, sets up a virtual environment in `/opt/serverdeck/venv`, creates configuration templates in `/etc/serverdeck`, and configures hardened systemd service units.
+### Method 3: Automated Production Setup via Bash (Ubuntu and Debian)
+
+This method prepares a full production stack on bare-metal servers or cloud instances. It configures system directories, service accounts, file permissions, and systemd units.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Norbertkkl/ServerDeck/main/install.sh | sudo bash -s -- --all
 ```
 
-After the installation completes, the dashboard and background daemon can be managed using standard system tooling.
+The installer performs the following operations automatically:
+1. Validates that the executing user has root authority (`EUID == 0`).
+2. Installs system packages: `python3`, `python3-venv`, `python3-pip`, `git`, `curl`, `htop`, `smartmontools`, `lm-sensors`, and `ufw`.
+3. Creates the system group `serverdeck` and unprivileged system user `serverdeck` with home directory `/var/lib/serverdeck`.
+4. Adds user `serverdeck` to group `docker` to allow container inspection without root.
+5. Creates `/etc/serverdeck` (`0750 root:serverdeck`) and populates default template copies of `config.yaml`, `bot.yaml`, and `.env` (`0640`).
+6. Creates `/var/lib/serverdeck` (`0770 serverdeck:serverdeck`).
+7. Builds `/opt/serverdeck/venv` and installs all wheels from `requirements.txt`.
+8. Generates global executables in `/usr/local/bin/serverdeck` and `/usr/local/bin/serverdeck-bot`.
+9. Deploys `/etc/systemd/system/serverdeck-bot.service`, runs `systemctl daemon-reload`, and enables boot autostart.
 
-```bash
-serverdeck
-sudo systemctl status serverdeck-bot.service
-```
+### Method 4: Manual Git Repository Setup (Developer Workflow)
 
-### 4. Developer Setup from Git Source
+For developing new collectors, designing custom themes, or testing code modifications:
 
-To inspect or modify the code directly:
-
-1. Clone the repository from GitHub.
+1. Clone the repository:
 ```bash
 git clone https://github.com/Norbertkkl/ServerDeck.git
 cd ServerDeck
 ```
 
-2. Initialize and activate a Python virtual environment.
+2. Create a dedicated virtual environment:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-3. Install all required dependencies.
+3. Upgrade packaging tools and install dependencies:
 ```bash
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 
-4. Install the package in editable mode and run.
+4. Install the repository in editable mode:
 ```bash
 pip install -e .
+```
+
+5. Copy the sample environment file and run:
+```bash
+cp .env.example .env
 serverdeck
 ```
 
-### 5. Python Package Index (PyPI)
+### Method 5: Python Package Index (PyPI)
 
 ```bash
 pip install serverdeck-cli
 serverdeck
+```
+
+---
+
+## Configuration Files and Data Management
+
+ServerDeck uses three configuration files located in `/etc/serverdeck` (or the repository root).
+
+### 1. Environment Secrets Configuration (`.env`)
+
+The `.env` file houses secrets, authentication tokens, webhook endpoints, and alerting thresholds. Create this file by copying `.env.example`:
+
+```bash
+cp .env.example .env
+chmod 640 .env
+```
+
+Parameters and variable definitions:
+
+| Variable Name | Default Value | Description |
+| :--- | :--- | :--- |
+| `SERVERDECK_ENV` | `production` | Deployment mode identifier (`production`, `development`, `testing`) |
+| `SERVERDECK_CONFIG_DIR` | `/etc/serverdeck` | Custom override path for configuration files |
+| `SERVERDECK_DATA_DIR` | `/var/lib/serverdeck` | Custom override path for metric history and snapshots |
+| `DISCORD_BOT_TOKEN` | *Empty* | Bot application token generated in the Discord Developer Portal |
+| `DISCORD_STATUS_CHANNEL_ID` | `0` | Numerical ID of the Discord channel where the live embed is pinned |
+| `DISCORD_ALERTS_CHANNEL_ID` | `0` | Numerical ID of the Discord channel where alerts are dispatched |
+| `DISCORD_ALLOWED_USER_IDS` | *Empty* | Comma-separated list of numerical Discord user IDs permitted to run actions |
+| `DISCORD_WEBHOOK_URL` | *Empty* | Discord Webhook URL used for terminal-initiated telemetry embeds (`w` key) |
+| `ALERT_CPU_PERCENT` | `90.0` | Processor utilization threshold triggering an alert notification |
+| `ALERT_RAM_PERCENT` | `90.0` | System memory consumption threshold triggering an alert notification |
+| `ALERT_DISK_PERCENT` | `90.0` | Root partition storage fill threshold triggering an alert notification |
+| `ALERT_TEMP_CELSIUS` | `80.0` | Thermal sensor threshold triggering an alert notification |
+
+### 2. General Dashboard Preferences (`config.yaml`)
+
+Controls TUI appearance, timing loops, and localization defaults:
+
+```yaml
+general:
+  refresh_rate: 1.0        # Screen redraw and polling interval in seconds
+  theme: "dracula"         # Active TrueColor palette (dracula, glacier_cyan, monokai, cyberpunk, amber_crt, nord)
+  language: "en"           # Display language (en or pl)
+  log_level: "INFO"        # Logging verbosity (DEBUG, INFO, WARNING, ERROR)
+
+collectors:
+  enable_docker: true      # Inspect local Docker container daemon
+  enable_smart: true       # Run asynchronous SMART queries for disk health
+  enable_mariadb: true     # Inspect local MariaDB / MySQL database catalog
+  enable_sensors: true     # Read temperature sensors and fan tachometers
+  enable_ufw: true         # Monitor active UFW firewall rules
+```
+
+When users press `c` (Theme) or `l` (Language) inside the running dashboard, ServerDeck writes the selected preference directly back into `config.yaml` to ensure settings persist.
+
+### 3. Discord Bot Sentinel Policy (`bot.yaml`)
+
+Defines operational intervals and message layouts for the Discord daemon:
+
+```yaml
+bot:
+  update_interval: 10      # Seconds between updates to the live pinned status embed
+  alert_cooldown: 300      # Seconds before repeating an unresolved threshold alert
+  embed_color: "0x00f0ff"  # Hex color of the live Discord embed border
+  enable_modal_actions: true
 ```
 
 ---
@@ -220,40 +368,6 @@ Pressing `n` opens the user creation dialog accepting input formatted as `userna
 ## Discord Sentinel Bot and Telemetry Webhooks
 
 ServerDeck includes a telemetry daemon that monitors operational thresholds and maintains an embed dashboard inside designated Discord channels.
-
-### Configuring the `.env` File
-
-Copy the template configuration file into place:
-```bash
-cp .env.example .env
-chmod 640 .env
-```
-
-Set credentials and thresholds inside `.env`:
-```ini
-SERVERDECK_ENV=production
-
-# Discord bot authentication token obtained from the Discord Developer Portal
-DISCORD_BOT_TOKEN="YOUR_BOT_TOKEN_HERE"
-
-# Dedicated channel for the live-updating status embed
-DISCORD_STATUS_CHANNEL_ID="123456789012345678"
-
-# Dedicated channel for instantaneous anomaly and threshold notifications
-DISCORD_ALERTS_CHANNEL_ID="123456789012345678"
-
-# Numerical Discord user IDs allowed to execute interactive bot commands
-DISCORD_ALLOWED_USER_IDS="771669963890491422"
-
-# Discord Webhook URL for terminal-initiated telemetry transmissions
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
-
-# Alerting thresholds (percentage and temperature degrees Celsius)
-ALERT_CPU_PERCENT=90.0
-ALERT_RAM_PERCENT=90.0
-ALERT_DISK_PERCENT=90.0
-ALERT_TEMP_CELSIUS=80.0
-```
 
 ### Starting the Bot Daemon
 
