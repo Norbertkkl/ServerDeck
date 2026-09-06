@@ -650,9 +650,14 @@ def run_monitor():
                     need_immediate_render = True
                     sys.stdout.write("\033[2J\033[3J\033[H")
                     sys.stdout.flush()
-                elif key in ('v', 'V'):
+                elif key in ('v', 'V', 'RIGHT', '>', ']'):
                     if active_tab == 7:
                         db_subview = (db_subview + 1) % 3
+                        need_full_clear = True
+                        need_immediate_render = True
+                elif key in ('LEFT', '<', '['):
+                    if active_tab == 7:
+                        db_subview = (db_subview - 1) % 3
                         need_full_clear = True
                         need_immediate_render = True
                 elif key in ('c', 'C'):

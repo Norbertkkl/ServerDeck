@@ -33,10 +33,15 @@ def render_tab_7_db_and_docker(
 
     print(render_box_header("DOCKER CONTAINERS & MARIADB MANAGEMENT", box_w, theme))
 
-    sub_0 = colorize("[1] Docker Containers", c_title if subview == 0 else c_label, bold=(subview == 0))
-    sub_1 = colorize("[2] DB Schemas", c_title if subview == 1 else c_label, bold=(subview == 1))
-    sub_2 = colorize("[3] User Accounts", c_title if subview == 2 else c_label, bold=(subview == 2))
-    subview_bar = f"• Active Subview:  {sub_0}  |  {sub_1}  |  {sub_2}"
+    def fmt_sub(title: str, is_active: bool) -> str:
+        if is_active:
+            return colorize(f"▌►{title}◄▐", c_title, bold=True)
+        return colorize(title, c_label)
+
+    sub_0 = fmt_sub("Docker Containers", subview == 0)
+    sub_1 = fmt_sub("DB Schemas", subview == 1)
+    sub_2 = fmt_sub("User Accounts", subview == 2)
+    subview_bar = f"• Subview: {sub_0} | {sub_1} | {sub_2}  [v/◄►]"
     print(render_box_line(subview_bar, box_w, theme))
     print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
 
@@ -70,7 +75,7 @@ def render_tab_7_db_and_docker(
             print(render_box_line(colorize("No active Docker containers running or detected.", c_label), box_w, theme))
 
         print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-        shortcuts = f"• Shortcuts: [s] Start/Stop | [r] Restart | [d] Delete | [n] Deploy | [1-3] Switch"
+        shortcuts = f"• Shortcuts: [s] Toggle | [r] Restart | [d] Del | [n] Deploy | [v/◄►] View"
         print(render_box_line(shortcuts, box_w, theme))
         print(render_box_footer(box_w, theme))
 
@@ -101,7 +106,7 @@ def render_tab_7_db_and_docker(
             print(render_box_line(colorize("No MariaDB/MySQL databases found or connection failed.", c_label), box_w, theme))
 
         print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-        shortcuts = f"• Shortcuts: [n] Create DB | [d] Drop DB | [1-3] Switch View | [↑/↓] Select"
+        shortcuts = f"• Shortcuts: [n] Create DB | [d] Drop DB | [↑/↓] Select | [v/◄►] View"
         print(render_box_line(shortcuts, box_w, theme))
         print(render_box_footer(box_w, theme))
 
@@ -132,7 +137,7 @@ def render_tab_7_db_and_docker(
             print(render_box_line(colorize("No user accounts found.", c_label), box_w, theme))
 
         print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-        shortcuts = f"• Shortcuts: [n] Add User | [d] Drop User | [p] Password | [g] Privileges | [1-3] Switch"
+        shortcuts = f"• Shortcuts: [n] Add User | [d] Drop User | [p] Pass | [g] Priv | [v/◄►] View"
         print(render_box_line(shortcuts, box_w, theme))
         print(render_box_footer(box_w, theme))
 
