@@ -4,7 +4,7 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
-from serverdeck.core.state import DEFAULT_BOT_CONFIG_PATH, BASE_DIR, validate_bot_config
+from serverdeck.core.state import DEFAULT_BOT_CONFIG_PATH, BASE_DIR, validate_bot_config, get_config_dir
 from serverdeck.core.i18n import i18n
 from serverdeck.collectors.system import get_all_device_stats
 from serverdeck.core.formatters import format_bytes, format_uptime
@@ -13,19 +13,20 @@ def send_discord_webhook(webhook_url: str, payload: Dict[str, Any]) -> Tuple[boo
     if not webhook_url or not webhook_url.startswith(("http://", "https://")):
         return False, "Invalid or empty Webhook URL."
     try:
-        data_bytes = json.dumps(payload).encode("utf-8")
+        data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             webhook_url,
-            data=data_bytes,
+            data=data,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "ServerDeck-Webhook-Engine/1.0"
-            }
+                "User-Agent": "ServerDeck-Sentinel/1.0"
+            },
+            method="POST"
         )
-        with urllib.request.urlopen(req, timeout=4.0) as resp:
+        with urllib.request.urlopen(req, timeout=8.0) as resp:
             if resp.status in (200, 204):
-                return True, "Webhook delivered successfully."
-            return False, f"HTTP Error {resp.status}"
+                return True, "Webhook sent successfully"
+            return False, f"Unexpected response status: {resp.status}"
     except urllib.error.HTTPError as e:
         return False, f"HTTP {e.code}: {e.reason}"
     except Exception as e:
@@ -33,6 +34,7 @@ def send_discord_webhook(webhook_url: str, payload: Dict[str, Any]) -> Tuple[boo
 
 def load_webhooks_config() -> Dict[str, Any]:
     candidates = [
+        get_config_dir() / "bot.yaml",
         DEFAULT_BOT_CONFIG_PATH,
         Path.home() / ".config" / "serverdeck" / "bot.yaml",
         BASE_DIR / "bot.yaml",

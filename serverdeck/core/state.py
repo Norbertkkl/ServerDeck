@@ -211,17 +211,37 @@ def validate_bot_config(cfg: Any) -> Dict[str, Any]:
     if not isinstance(thresholds, dict):
         thresholds = {}
     clean_thresholds = {}
-    for metric in ("cpu_percent", "ram_percent", "disk_percent", "temp_celsius"):
+    for metric, env_keys in (
+        ("cpu_percent", ("SERVERDECK_ALERT_CPU", "ALERT_CPU_PERCENT")),
+        ("ram_percent", ("SERVERDECK_ALERT_RAM", "ALERT_RAM_PERCENT")),
+        ("disk_percent", ("SERVERDECK_ALERT_DISK", "ALERT_DISK_PERCENT")),
+        ("temp_celsius", ("SERVERDECK_ALERT_TEMP", "ALERT_TEMP_CELSIUS"))
+    ):
+        raw_val = thresholds.get(metric)
+        if raw_val is None:
+            for ek in env_keys:
+                sec_v = get_secret(ek, "")
+                if sec_v:
+                    raw_val = sec_v
+                    break
         try:
-            val = float(thresholds.get(metric, 90.0))
+            val = float(raw_val if raw_val is not None else 90.0)
             clean_thresholds[metric] = max(1.0, min(100.0, val))
         except (ValueError, TypeError):
             clean_thresholds[metric] = 90.0
 
-    webhook_url = str(cfg.get("webhook_url", "")).strip() or get_secret("DISCORD_WEBHOOK_URL", "")
-    bot_token = str(bot_settings.get("bot_token", "")).strip() or get_secret("DISCORD_BOT_TOKEN", "")
-    status_channel = bot_settings.get("status_channel_id", 0) or get_secret("DISCORD_STATUS_CHANNEL_ID", "0")
-    alerts_channel = bot_settings.get("alerts_channel_id", 0) or get_secret("DISCORD_ALERTS_CHANNEL_ID", "0")
+    raw_wh = str(cfg.get("webhook_url", "")).strip()
+    if "YOUR_DISCORD_WEBHOOK_URL_HERE" in raw_wh or raw_wh.endswith("..."):
+        raw_wh = ""
+    webhook_url = get_secret("DISCORD_WEBHOOK_URL", "") or raw_wh
+
+    raw_token = str(bot_settings.get("bot_token", "")).strip()
+    if "YOUR_DISCORD_BOT_TOKEN_HERE" in raw_token:
+        raw_token = ""
+    bot_token = get_secret("DISCORD_BOT_TOKEN", "") or raw_token
+
+    status_channel = get_secret("DISCORD_STATUS_CHANNEL_ID", "") or bot_settings.get("status_channel_id", 0)
+    alerts_channel = get_secret("DISCORD_ALERTS_CHANNEL_ID", "") or bot_settings.get("alerts_channel_id", 0)
     try:
         status_channel = int(status_channel)
     except (ValueError, TypeError):
@@ -230,6 +250,13 @@ def validate_bot_config(cfg: Any) -> Dict[str, Any]:
         alerts_channel = int(alerts_channel)
     except (ValueError, TypeError):
         alerts_channel = 0
+
+    secret_users = get_secret("DISCORD_ALLOWED_USER_IDS", "")
+    if secret_users and not allowed_users:
+        for u in str(secret_users).split(","):
+            u = u.strip()
+            if u.isdigit():
+                allowed_users.append(int(u))
 
     is_enabled = bool(cfg.get("enabled", False))
     if not is_enabled and (webhook_url or bot_token):

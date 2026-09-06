@@ -95,15 +95,28 @@ def get_mariadb_telemetry() -> Dict[str, Any]:
     }
 
 def load_bot_config() -> Dict[str, Any]:
-    if BOT_CONFIG_FILE.exists():
-        try:
-            with open(BOT_CONFIG_FILE, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
-                if isinstance(data, dict):
-                    return data
-        except Exception as e:
-            print(f"[warn] Error parsing bot.yaml: {e}")
-    return {}
+    try:
+        from serverdeck.core.state import validate_bot_config, get_config_dir, DEFAULT_BOT_CONFIG_PATH
+    except ImportError:
+        from core.state import validate_bot_config, get_config_dir, DEFAULT_BOT_CONFIG_PATH
+
+    candidates = [
+        get_config_dir() / "bot.yaml",
+        BOT_CONFIG_FILE,
+        DEFAULT_BOT_CONFIG_PATH,
+        Path.home() / ".config" / "serverdeck" / "bot.yaml",
+        BASE_DIR / "templates" / "bot.yaml"
+    ]
+    for c in candidates:
+        if c.exists():
+            try:
+                with open(c, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                    if isinstance(data, dict):
+                        return validate_bot_config(data)
+            except Exception as e:
+                print(f"[warn] Error parsing bot config {c}: {e}")
+    return validate_bot_config({})
 
 def format_replacements() -> Dict[str, str]:
     stats = get_all_device_stats()

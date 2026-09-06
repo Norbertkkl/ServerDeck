@@ -102,14 +102,14 @@ bot_settings:
   bot_token: ''
   command_prefix: '!'
   enable_slash_commands: true
-  status_channel_id: 1543228072407597076
-  alerts_channel_id: 1543228094574493716
+  status_channel_id: 0
+  alerts_channel_id: 0
   live_dashboard_interval_seconds: 45
-  allowed_user_ids: [771669963890491422]
+  allowed_user_ids: []
   admin_role_ids: []
   username: ServerDeck Sentinel
   avatar_url: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/server.png
-webhook_url: https://discord.com/api/webhooks/1543230127025168454/ClASxtuavVdBGaiAj_6eBi22ELiTWTWIJVvaBv8mrcdZ6hWZpTfLeRY7bVs192IjGMgE
+webhook_url: 'YOUR_DISCORD_WEBHOOK_URL_HERE'
 enabled: true
 alert_thresholds:
   cpu_percent: 90.0
