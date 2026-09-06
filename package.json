@@ -1,6 +1,6 @@
 {
   "name": "serverdeck",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Linux TUI dashboard and Discord telemetry daemon for homelab monitoring",
   "main": "bin/serverdeck.js",
   "bin": {
