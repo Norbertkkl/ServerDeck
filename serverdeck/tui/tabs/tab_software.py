@@ -86,9 +86,9 @@ def render_tab_10_installer(theme: Dict[str, Any], selected_idx: int = 0, instal
         print(render_box_line(row_txt, box_w, theme))
 
     print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-    scroll_info = f"• Showing {start_idx+1}-{min(total_pkgs, start_idx+window_size)} of {total_pkgs} packages (Use ↑ / ↓ to scroll)   Press [Enter] to install"
+    scroll_info = f"• Showing {start_idx+1}-{min(total_pkgs, start_idx+window_size)} of {total_pkgs} packages | Use [↑/↓] to scroll"
     print(render_box_line(colorize(scroll_info, c_label), box_w, theme))
-    shortcuts = f"Shortcuts: [Enter]/[i] Install | [u]/[x] Uninstall | [r] Restart | [↑/↓] Select"
+    shortcuts = f"• Shortcuts: [i/Enter] Install | [u/x] Uninstall | [r] Restart"
     print(render_box_line(shortcuts, box_w, theme))
     print(render_box_footer(box_w, theme))
 

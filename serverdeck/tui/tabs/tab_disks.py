@@ -7,7 +7,14 @@ from serverdeck.tui.components import (
     render_bar, pad_visible, format_bytes
 )
 
-def render_tab_5_partitions_and_smart(theme: Dict[str, Any], selected_part_idx: int = 0, snapshot_msg: Optional[str] = None, is_modal: bool = False) -> List[Dict[str, Any]]:
+def render_tab_5_partitions_and_smart(
+    theme: Dict[str, Any],
+    selected_part_idx: int = 0,
+    snapshot_msg: Optional[str] = None,
+    is_modal: bool = False,
+    cached_partitions: Optional[List[Dict[str, Any]]] = None,
+    force_refresh: bool = False
+) -> List[Dict[str, Any]]:
     c_border = theme.get("border", "#1e3a8a")
     c_title = theme.get("title", "#00f0ff")
     c_label = theme.get("label", "#94a3b8")
@@ -19,7 +26,10 @@ def render_tab_5_partitions_and_smart(theme: Dict[str, Any], selected_part_idx: 
     inner_w = box_w - 4
 
     drives = get_physical_drives()
-    partitions = get_block_devices_and_partitions()
+    if cached_partitions is not None and not force_refresh:
+        partitions = cached_partitions
+    else:
+        partitions = get_block_devices_and_partitions(force=force_refresh)
 
     print(render_box_header("STORAGE DEVICES, PARTITIONS & S.M.A.R.T. HEALTH", box_w, theme))
 
@@ -78,7 +88,7 @@ def render_tab_5_partitions_and_smart(theme: Dict[str, Any], selected_part_idx: 
         print(render_box_line(colorize("No block device partitions detected.", c_label), box_w, theme))
 
     print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-    shortcuts = f"• Shortcuts: [m] Mount | [u] Unmount | [f] Format | [t] SMART Test | [c] FSCK Check"
+    shortcuts = f"• Shortcuts: [m] Mount | [u] Unmount | [f] Format | [t] SMART | [k] FSCK"
     print(render_box_line(shortcuts, box_w, theme))
     print(render_box_footer(box_w, theme))
     return partitions

@@ -68,7 +68,14 @@ def display_dashboard(
     selected_installer_idx: int = 0,
     installer_mgr: Optional[PythonInstallerManager] = None,
     prompt_text: Optional[str] = None,
-    modal_info: Optional[Tuple[str, str, str, str]] = None
+    modal_info: Optional[Tuple[str, str, str, str]] = None,
+    cached_procs: Optional[List[Dict[str, Any]]] = None,
+    cached_containers: Optional[List[Dict[str, Any]]] = None,
+    cached_dbs: Optional[List[Dict[str, Any]]] = None,
+    cached_users: Optional[List[Dict[str, Any]]] = None,
+    cached_ufw_rules: Optional[List[Dict[str, Any]]] = None,
+    cached_partitions: Optional[List[Dict[str, Any]]] = None,
+    force_refresh: bool = False
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     theme = THEMES[theme_key]
     c_bbright = theme.get("border_bright", "#38bdf8")
@@ -116,21 +123,31 @@ def display_dashboard(
     if active_tab == 1 and stats:
         render_tab_1_dashboard(stats, history, theme)
     elif active_tab == 2:
-        current_procs = render_tab_2_processes(sort_by, theme, filter_str, selected_proc_idx, is_modal=is_modal)
+        current_procs = render_tab_2_processes(
+            sort_by, theme, filter_str, selected_proc_idx, is_modal=is_modal,
+            cached_procs=cached_procs, force_refresh=force_refresh
+        )
     elif active_tab == 3 and stats:
         render_tab_3_network(stats, history, theme)
     elif active_tab == 4 and stats:
         render_tab_4_hardware_sensors(stats, history, theme)
     elif active_tab == 5:
-        current_partitions = render_tab_5_partitions_and_smart(theme, selected_part_idx, snapshot_msg, is_modal=is_modal)
+        current_partitions = render_tab_5_partitions_and_smart(
+            theme, selected_part_idx, snapshot_msg, is_modal=is_modal,
+            cached_partitions=cached_partitions, force_refresh=force_refresh
+        )
     elif active_tab == 6 and stats:
         render_tab_5_kernel_memory_services(stats, theme, snapshot_msg)
     elif active_tab == 7:
         current_containers, current_dbs, current_users = render_tab_7_db_and_docker(
-            theme, db_subview, selected_container_idx, selected_db_idx, selected_user_idx, snapshot_msg, is_modal=is_modal
+            theme, db_subview, selected_container_idx, selected_db_idx, selected_user_idx, snapshot_msg, is_modal=is_modal,
+            cached_containers=cached_containers, cached_dbs=cached_dbs, cached_users=cached_users, force_refresh=force_refresh
         )
     elif active_tab == 8:
-        current_ufw_rules = render_tab_8_ufw(theme, selected_ufw_idx, filter_str, snapshot_msg, is_modal=is_modal)
+        current_ufw_rules = render_tab_8_ufw(
+            theme, selected_ufw_idx, filter_str, snapshot_msg, is_modal=is_modal,
+            cached_rules=cached_ufw_rules, force_refresh=force_refresh
+        )
     elif active_tab == 9 or active_tab == 10:
         render_tab_10_installer(theme, selected_installer_idx, installer_mgr, is_modal=is_modal)
 
@@ -148,48 +165,130 @@ def display_dashboard(
     else:
         theme_name = theme.get("name", theme_key)
         lang_label = i18n.current_lang.upper()
-        footer = f" [1-9/Tab] Tabs | [l] Lang: {lang_label} | [c] Theme: {theme_name} | [+/-] {refresh_rate:.1f}s | [p] Pause | [q] Quit "
+        if active_tab == 7:
+            footer = f" [1-9] Tabs | [Tab] Subviews | [l] Lang: {lang_label} | [c] Theme: {theme_name} | [+/-] {refresh_rate:.1f}s | [q] Quit "
+        else:
+            footer = f" [1-9/Tab] Tabs | [l] Lang: {lang_label} | [c] Theme: {theme_name} | [+/-] {refresh_rate:.1f}s | [p] Pause | [q] Quit "
         foot_w = max(40, w - 2)
         if len(footer) > foot_w - 4:
-            footer = f" [1-9] Tabs | [l] {lang_label} | [c] Theme | [+/-] {refresh_rate:.1f}s | [q] Quit "
+            if active_tab == 7:
+                footer = f" [1-9] Tabs | [Tab] Subviews | [l] {lang_label} | [c] Theme | [+/-] {refresh_rate:.1f}s | [q] Quit "
+            else:
+                footer = f" [1-9] Tabs | [l] {lang_label} | [c] Theme | [+/-] {refresh_rate:.1f}s | [q] Quit "
         print(colorize(f"──{footer:─^{foot_w - 4}}──", c_bbright))
 
     sys.stdout.write("\033[J")
     sys.stdout.flush()
-    return current_procs, current_containers, current_dbs, current_users, current_ufw_rules, current_partitions
+    return (
+        current_procs or cached_procs or [],
+        current_containers or cached_containers or [],
+        current_dbs or cached_dbs or [],
+        current_users or cached_users or [],
+        current_ufw_rules or cached_ufw_rules or [],
+        current_partitions or cached_partitions or []
+    )
 
-def get_keypress(timeout: float = 0.05) -> Optional[str]:
+def get_key_events(timeout: float = 0.05) -> List[str]:
     fd = sys.stdin.fileno()
     rlist, _, _ = select.select([fd], [], [], timeout)
     if not rlist:
-        return None
+        return []
 
-    ch = sys.stdin.read(1)
-    if ch == '\033':
-        rlist, _, _ = select.select([fd], [], [], 0.02)
-        if not rlist:
-            return 'ESC'
-        ch2 = sys.stdin.read(1)
-        if ch2 == '[':
-            rlist, _, _ = select.select([fd], [], [], 0.02)
-            if not rlist:
-                return 'ESC'
-            ch3 = sys.stdin.read(1)
-            if ch3 == 'A': return 'UP'
-            if ch3 == 'B': return 'DOWN'
-            if ch3 == 'C': return 'RIGHT'
-            if ch3 == 'D': return 'LEFT'
-            if ch3 == 'H': return 'HOME'
-            if ch3 == 'F': return 'END'
-            if ch3 in ('5', '6'):
-                ch4 = sys.stdin.read(1) if select.select([fd], [], [], 0.02)[0] else ''
-                if ch3 == '5' and ch4 == '~': return 'PAGE_UP'
-                if ch3 == '6' and ch4 == '~': return 'PAGE_DOWN'
-            if ch3 == '3':
-                ch4 = sys.stdin.read(1) if select.select([fd], [], [], 0.02)[0] else ''
-                if ch4 == '~': return 'DELETE'
-        return 'ESC'
-    return ch
+    try:
+        raw_bytes = os.read(fd, 128)
+    except Exception:
+        return []
+
+    if not raw_bytes:
+        return []
+
+    if raw_bytes.endswith(b"\x1b") or raw_bytes.endswith(b"\x1b[") or raw_bytes.endswith(b"\x1bO"):
+        r2, _, _ = select.select([fd], [], [], 0.005)
+        if r2:
+            try:
+                more = os.read(fd, 64)
+                raw_bytes += more
+            except Exception:
+                pass
+
+    keys: List[str] = []
+    i = 0
+    n = len(raw_bytes)
+    while i < n:
+        if raw_bytes[i:i+3] in (b"\x1b[A", b"\x1bOA"):
+            keys.append("UP")
+            i += 3
+        elif raw_bytes[i:i+3] in (b"\x1b[B", b"\x1bOB"):
+            keys.append("DOWN")
+            i += 3
+        elif raw_bytes[i:i+3] in (b"\x1b[C", b"\x1bOC"):
+            keys.append("RIGHT")
+            i += 3
+        elif raw_bytes[i:i+3] in (b"\x1b[D", b"\x1bOD"):
+            keys.append("LEFT")
+            i += 3
+        elif raw_bytes[i:i+3] == b"\x1b[Z":
+            keys.append("BACKTAB")
+            i += 3
+        elif raw_bytes[i:i+4] == b"\x1b[5~":
+            keys.append("PAGE_UP")
+            i += 4
+        elif raw_bytes[i:i+4] == b"\x1b[6~":
+            keys.append("PAGE_DOWN")
+            i += 4
+        elif raw_bytes[i:i+4] == b"\x1b[3~":
+            keys.append("DELETE")
+            i += 4
+        elif raw_bytes[i:i+3] in (b"\x1b[H", b"\x1bOH") or raw_bytes[i:i+4] == b"\x1b[1~":
+            keys.append("HOME")
+            i += 4 if raw_bytes[i:i+4] == b"\x1b[1~" else 3
+        elif raw_bytes[i:i+3] in (b"\x1b[F", b"\x1bOF") or raw_bytes[i:i+4] == b"\x1b[4~":
+            keys.append("END")
+            i += 4 if raw_bytes[i:i+4] == b"\x1b[4~" else 3
+        elif raw_bytes[i:i+1] == b"\x1b":
+            if i == n - 1:
+                keys.append("ESC")
+                i += 1
+            else:
+                if raw_bytes[i:i+2] in (b"\x1b[", b"\x1bO"):
+                    j = i + 2
+                    while j < n and not (64 <= raw_bytes[j] <= 126):
+                        j += 1
+                    if j < n:
+                        seq = raw_bytes[i:j+1]
+                        if seq.endswith(b"A"): keys.append("UP")
+                        elif seq.endswith(b"B"): keys.append("DOWN")
+                        elif seq.endswith(b"C"): keys.append("RIGHT")
+                        elif seq.endswith(b"D"): keys.append("LEFT")
+                        i = j + 1
+                    else:
+                        keys.append("ESC")
+                        i += 1
+                else:
+                    keys.append("ESC")
+                    i += 1
+        else:
+            try:
+                char = raw_bytes[i:i+1].decode("utf-8", errors="ignore")
+                if char:
+                    keys.append(char)
+            except Exception:
+                pass
+            i += 1
+
+    return keys
+
+_key_buffer: List[str] = []
+
+def get_keypress(timeout: float = 0.05) -> Optional[str]:
+    global _key_buffer
+    if _key_buffer:
+        return _key_buffer.pop(0)
+    events = get_key_events(timeout=timeout)
+    if not events:
+        return None
+    _key_buffer.extend(events[1:])
+    return events[0]
 
 def sanitize_snapshot_data(val: Any) -> Any:
     sensitive_keys = ("password", "token", "secret", "webhook", "auth", "key", "credential", "private")
@@ -322,6 +421,7 @@ def run_monitor():
 
             key = get_keypress(timeout=poll_timeout)
             need_immediate_render = False
+            need_hard_data_refresh = False
 
             if installer_mgr.is_running or disk_worker.is_running:
                 need_immediate_render = True
@@ -331,12 +431,13 @@ def run_monitor():
                 snapshot_msg_timer = disk_worker.result_timer
                 disk_worker.result_msg = ""
                 need_immediate_render = True
+                need_hard_data_refresh = True
 
             if is_filtering:
                 if key:
                     if key in ('\n', '\r', 'ESC'):
                         is_filtering = False
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         filter_str = filter_str[:-1]
                         selected_proc_idx = 0
                         selected_ufw_idx = 0
@@ -352,6 +453,7 @@ def run_monitor():
                             ok, msg = create_database(db_input_name.strip())
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_creating_db = False
                         db_input_name = ""
                         need_immediate_render = True
@@ -359,7 +461,7 @@ def run_monitor():
                         is_creating_db = False
                         db_input_name = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         db_input_name = db_input_name[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -374,6 +476,7 @@ def run_monitor():
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
                             selected_db_idx = max(0, selected_db_idx - 1)
+                            need_hard_data_refresh = True
                         is_dropping_db = False
                         need_immediate_render = True
                     elif key in ('n', 'N', 'ESC'):
@@ -395,6 +498,7 @@ def run_monitor():
                             ok, msg = create_db_user(uname, host, pass_part)
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_creating_db_user = False
                         db_input_user = ""
                         need_immediate_render = True
@@ -402,7 +506,7 @@ def run_monitor():
                         is_creating_db_user = False
                         db_input_user = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         db_input_user = db_input_user[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -417,6 +521,7 @@ def run_monitor():
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
                             selected_user_idx = max(0, selected_user_idx - 1)
+                            need_hard_data_refresh = True
                         is_dropping_db_user = False
                         need_immediate_render = True
                     elif key in ('n', 'N', 'ESC'):
@@ -430,6 +535,7 @@ def run_monitor():
                             ok, msg = grant_db_privileges(db_input_grant_dbname.strip(), u["user"], u["host"])
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_granting_db_priv = False
                         db_input_grant_dbname = ""
                         need_immediate_render = True
@@ -437,7 +543,7 @@ def run_monitor():
                         is_granting_db_priv = False
                         db_input_grant_dbname = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         db_input_grant_dbname = db_input_grant_dbname[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -451,6 +557,7 @@ def run_monitor():
                             ok, msg = reset_db_password(u["user"], u["host"], db_input_new_pass.strip())
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_resetting_db_pass = False
                         db_input_new_pass = ""
                         need_immediate_render = True
@@ -458,7 +565,7 @@ def run_monitor():
                         is_resetting_db_pass = False
                         db_input_new_pass = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         db_input_new_pass = db_input_new_pass[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -473,6 +580,7 @@ def run_monitor():
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
                             selected_container_idx = max(0, selected_container_idx - 1)
+                            need_hard_data_refresh = True
                         is_deleting_container = False
                         need_immediate_render = True
                     elif key in ('n', 'N', 'ESC'):
@@ -484,6 +592,7 @@ def run_monitor():
                         ok, msg = deploy_docker_template(key)
                         snapshot_msg = msg
                         snapshot_msg_timer = time.time() + 5.0
+                        need_hard_data_refresh = True
                         is_deploying_container = False
                         deploy_input_choice = ""
                         need_immediate_render = True
@@ -498,6 +607,7 @@ def run_monitor():
                             act_num = INSTALLER_ACTIONS[selected_installer_idx][0]
                             installer_mgr.start_action(act_num, mode="uninstall")
                             need_immediate_render = True
+                            need_hard_data_refresh = True
                         is_uninstalling_software = False
                     else:
                         is_uninstalling_software = False
@@ -510,6 +620,7 @@ def run_monitor():
                             ok, msg = kill_process_by_pid(int(pid_to_kill), sig=15)
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_killing = False
                         kill_input_pid = ""
                         need_immediate_render = True
@@ -519,6 +630,7 @@ def run_monitor():
                             ok, msg = kill_process_by_pid(int(pid_to_kill), sig=9)
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_killing = False
                         kill_input_pid = ""
                         need_immediate_render = True
@@ -526,7 +638,7 @@ def run_monitor():
                         is_killing = False
                         kill_input_pid = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         kill_input_pid = kill_input_pid[:-1]
                         need_immediate_render = True
                     elif key.isdigit():
@@ -540,6 +652,7 @@ def run_monitor():
                             ok, msg = ufw_action(rule_args)
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
                         is_adding_ufw = False
                         ufw_input_rule = ""
                         need_immediate_render = True
@@ -547,7 +660,7 @@ def run_monitor():
                         is_adding_ufw = False
                         ufw_input_rule = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         ufw_input_rule = ufw_input_rule[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -562,6 +675,7 @@ def run_monitor():
                             snapshot_msg = msg
                             snapshot_msg_timer = time.time() + 4.0
                             selected_ufw_idx = max(0, selected_ufw_idx - 1)
+                            need_hard_data_refresh = True
                         is_deleting_ufw = False
                         need_immediate_render = True
                     elif key in ('n', 'N', 'ESC'):
@@ -582,7 +696,7 @@ def run_monitor():
                         is_mounting = False
                         mount_input = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         mount_input = mount_input[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -617,7 +731,7 @@ def run_monitor():
                         is_formatting = False
                         format_input_fs = ""
                         need_immediate_render = True
-                    elif key in ('\x7f', '\x08'):
+                    elif key in ('\x7f', '\x08', 'DELETE'):
                         format_input_fs = format_input_fs[:-1]
                         need_immediate_render = True
                     elif len(key) == 1 and key.isprintable():
@@ -641,95 +755,149 @@ def run_monitor():
                         filter_str = ""
                         need_full_clear = True
                         need_immediate_render = True
+                        need_hard_data_refresh = True
                         sys.stdout.write("\033[2J\033[3J\033[H")
                         sys.stdout.flush()
                 elif key == '\t':
-                    active_tab = (active_tab % 9) + 1
-                    filter_str = ""
-                    need_full_clear = True
-                    need_immediate_render = True
-                    sys.stdout.write("\033[2J\033[3J\033[H")
-                    sys.stdout.flush()
-                elif key in ('v', 'V', 'RIGHT', '>', ']'):
                     if active_tab == 7:
                         db_subview = (db_subview + 1) % 3
                         need_full_clear = True
                         need_immediate_render = True
-                elif key in ('LEFT', '<', '['):
+                        need_hard_data_refresh = True
+                    else:
+                        active_tab = (active_tab % 9) + 1
+                        filter_str = ""
+                        need_full_clear = True
+                        need_immediate_render = True
+                        need_hard_data_refresh = True
+                        sys.stdout.write("\033[2J\033[3J\033[H")
+                        sys.stdout.flush()
+                elif key == 'BACKTAB':
                     if active_tab == 7:
                         db_subview = (db_subview - 1) % 3
                         need_full_clear = True
                         need_immediate_render = True
-                elif key in ('c', 'C'):
-                    if active_tab == 5 and cached_partitions and selected_part_idx < len(cached_partitions):
-                        target_p = cached_partitions[selected_part_idx]["path"]
-                        disk_worker.run_action("fsck", target_p)
-                        snapshot_msg = f"Initiated FSCK integrity check on {target_p} in background..."
-                        snapshot_msg_timer = time.time() + 4.0
-                        need_immediate_render = True
-                    elif active_tab == 7 and db_subview == 0:
-                        is_deploying_container = True
-                        need_immediate_render = True
+                        need_hard_data_refresh = True
                     else:
-                        theme_idx = (theme_idx + 1) % len(THEME_KEYS)
-                        save_app_theme(THEME_KEYS[theme_idx])
+                        active_tab = ((active_tab - 2) % 9) + 1
+                        filter_str = ""
                         need_full_clear = True
                         need_immediate_render = True
+                        need_hard_data_refresh = True
+                        sys.stdout.write("\033[2J\033[3J\033[H")
+                        sys.stdout.flush()
+                elif key in ('v', 'V'):
+                    if active_tab == 7:
+                        db_subview = (db_subview + 1) % 3
+                        need_full_clear = True
+                        need_immediate_render = True
+                        need_hard_data_refresh = True
+                elif key in ('c', 'C'):
+                    theme_idx = (theme_idx + 1) % len(THEME_KEYS)
+                    save_app_theme(THEME_KEYS[theme_idx])
+                    need_full_clear = True
+                    need_immediate_render = True
                 elif key in ('w', 'W') and active_tab in (1, 3, 6):
                     ok, msg = send_system_telemetry_webhook(force=True)
                     snapshot_msg = msg
                     snapshot_msg_timer = time.time() + 5.0
                     need_immediate_render = True
-                elif key in ('t', 'T') and active_tab == 8:
-                    ufw_st = get_ufw_status()
-                    target_action = "disable" if ufw_st.get("active", False) else "enable"
-                    ok, msg = ufw_action([target_action])
-                    snapshot_msg = f"UFW {'Enabled' if target_action == 'enable' else 'Disabled'}: {msg}"
-                    snapshot_msg_timer = time.time() + 4.0
-                    need_immediate_render = True
-                elif key in ('r', 'R') and active_tab == 8:
-                    ok, msg = ufw_action(["reload"])
-                    snapshot_msg = f"UFW Reloaded: {msg}"
-                    snapshot_msg_timer = time.time() + 4.0
-                    need_immediate_render = True
-                elif key in ('t', 'T') and active_tab == 1:
-                    ok, msg = send_test_webhook_alert()
-                    snapshot_msg = msg
-                    snapshot_msg_timer = time.time() + 5.0
-                    need_immediate_render = True
-                elif key in ('UP', 'PAGE_UP') or (key in ('k', 'K', 'w', 'W') and active_tab in (5, 7, 8, 9)):
+                elif key in ('t', 'T'):
+                    if active_tab == 1:
+                        ok, msg = send_test_webhook_alert()
+                        snapshot_msg = msg
+                        snapshot_msg_timer = time.time() + 5.0
+                        need_immediate_render = True
+                    elif active_tab == 5 and cached_partitions and selected_part_idx < len(cached_partitions):
+                        target_p = cached_partitions[selected_part_idx]["path"]
+                        s_info = get_smart_device_details(target_p, force=True)
+                        st_val = s_info.get("smart_status", "UNKNOWN")
+                        temp_s = f" ({s_info['temp_c']}°C)" if s_info.get("temp_c") is not None else ""
+                        snapshot_msg = f"SMART test for {target_p}: {st_val}{temp_s}"
+                        snapshot_msg_timer = time.time() + 4.0
+                        need_immediate_render = True
+                    elif active_tab == 8:
+                        ufw_st = get_ufw_status()
+                        target_action = "disable" if ufw_st.get("active", False) else "enable"
+                        ok, msg = ufw_action([target_action])
+                        snapshot_msg = f"UFW {'Enabled' if target_action == 'enable' else 'Disabled'}: {msg}"
+                        snapshot_msg_timer = time.time() + 4.0
+                        need_immediate_render = True
+                elif key in ('r', 'R'):
+                    if active_tab == 7 and db_subview == 0:
+                        if cached_containers and selected_container_idx < len(cached_containers):
+                            c = cached_containers[selected_container_idx]
+                            cid = c["id"]
+                            ok, msg = docker_container_action(cid, action="restart")
+                            snapshot_msg = f"Container {c['name']} restarted: {msg}"
+                            snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
+                            need_immediate_render = True
+                    elif active_tab == 8:
+                        ok, msg = ufw_action(["reload"])
+                        snapshot_msg = f"UFW Reloaded: {msg}"
+                        snapshot_msg_timer = time.time() + 4.0
+                        need_immediate_render = True
+                    elif active_tab == 9 and not installer_mgr.is_running and selected_installer_idx < len(INSTALLER_ACTIONS):
+                        act_num = INSTALLER_ACTIONS[selected_installer_idx][0]
+                        installer_mgr.start_action(act_num, mode="restart")
+                        need_immediate_render = True
+                elif key in ('s', 'S'):
                     if active_tab == 2:
-                        selected_proc_idx = max(0, selected_proc_idx - (5 if key == 'PAGE_UP' else 1))
+                        sort_by = "mem" if sort_by == "cpu" else "cpu"
+                        need_immediate_render = True
+                    elif active_tab == 7 and db_subview == 0:
+                        if cached_containers and selected_container_idx < len(cached_containers):
+                            c = cached_containers[selected_container_idx]
+                            cid = c["id"]
+                            is_running = "up" in c.get("status", "").lower()
+                            act = "stop" if is_running else "start"
+                            ok, msg = docker_container_action(cid, action=act)
+                            snapshot_msg = f"Container {c['name']} {act}: {msg}"
+                            snapshot_msg_timer = time.time() + 4.0
+                            need_hard_data_refresh = True
+                            need_immediate_render = True
+                elif key in ('UP', 'PAGE_UP'):
+                    step = 5 if key == 'PAGE_UP' else 1
+                    while _key_buffer and _key_buffer[0] == key:
+                        _key_buffer.pop(0)
+                        step += 1
+                    if active_tab == 2:
+                        selected_proc_idx = max(0, selected_proc_idx - step)
                     elif active_tab == 5:
-                        selected_part_idx = max(0, selected_part_idx - (5 if key == 'PAGE_UP' else 1))
+                        selected_part_idx = max(0, selected_part_idx - step)
                     elif active_tab == 7:
                         if db_subview == 0:
-                            selected_container_idx = max(0, selected_container_idx - (5 if key == 'PAGE_UP' else 1))
+                            selected_container_idx = max(0, selected_container_idx - step)
                         elif db_subview == 1:
-                            selected_db_idx = max(0, selected_db_idx - (5 if key == 'PAGE_UP' else 1))
+                            selected_db_idx = max(0, selected_db_idx - step)
                         elif db_subview == 2:
-                            selected_user_idx = max(0, selected_user_idx - (5 if key == 'PAGE_UP' else 1))
+                            selected_user_idx = max(0, selected_user_idx - step)
                     elif active_tab == 8:
-                        selected_ufw_idx = max(0, selected_ufw_idx - (5 if key == 'PAGE_UP' else 1))
+                        selected_ufw_idx = max(0, selected_ufw_idx - step)
                     elif active_tab == 9:
-                        selected_installer_idx = max(0, selected_installer_idx - (5 if key == 'PAGE_UP' else 1))
+                        selected_installer_idx = max(0, selected_installer_idx - step)
                     need_immediate_render = True
-                elif key in ('DOWN', 'PAGE_DOWN') or (key in ('j', 'J') and active_tab in (5, 7, 8, 9)) or (key in ('s', 'S') and active_tab in (5, 8, 9)):
+                elif key in ('DOWN', 'PAGE_DOWN'):
+                    step = 5 if key == 'PAGE_DOWN' else 1
+                    while _key_buffer and _key_buffer[0] == key:
+                        _key_buffer.pop(0)
+                        step += 1
                     if active_tab == 2:
-                        selected_proc_idx = min(max(0, len(cached_procs) - 1), selected_proc_idx + (5 if key == 'PAGE_DOWN' else 1))
+                        selected_proc_idx = min(max(0, len(cached_procs) - 1), selected_proc_idx + step)
                     elif active_tab == 5:
-                        selected_part_idx = min(max(0, len(cached_partitions) - 1), selected_part_idx + (5 if key == 'PAGE_DOWN' else 1))
+                        selected_part_idx = min(max(0, len(cached_partitions) - 1), selected_part_idx + step)
                     elif active_tab == 7:
                         if db_subview == 0:
-                            selected_container_idx = min(max(0, len(cached_containers) - 1), selected_container_idx + (5 if key == 'PAGE_DOWN' else 1))
+                            selected_container_idx = min(max(0, len(cached_containers) - 1), selected_container_idx + step)
                         elif db_subview == 1:
-                            selected_db_idx = min(max(0, len(cached_dbs) - 1), selected_db_idx + (5 if key == 'PAGE_DOWN' else 1))
+                            selected_db_idx = min(max(0, len(cached_dbs) - 1), selected_db_idx + step)
                         elif db_subview == 2:
-                            selected_user_idx = min(max(0, len(cached_users) - 1), selected_user_idx + (5 if key == 'PAGE_DOWN' else 1))
+                            selected_user_idx = min(max(0, len(cached_users) - 1), selected_user_idx + step)
                     elif active_tab == 8:
-                        selected_ufw_idx = min(max(0, len(cached_ufw_rules) - 1), selected_ufw_idx + (5 if key == 'PAGE_DOWN' else 1))
+                        selected_ufw_idx = min(max(0, len(cached_ufw_rules) - 1), selected_ufw_idx + step)
                     elif active_tab == 9:
-                        selected_installer_idx = min(len(INSTALLER_ACTIONS) - 1, selected_installer_idx + (5 if key == 'PAGE_DOWN' else 1))
+                        selected_installer_idx = min(len(INSTALLER_ACTIONS) - 1, selected_installer_idx + step)
                     need_immediate_render = True
                 elif key == 'HOME':
                     if active_tab == 2: selected_proc_idx = 0
@@ -764,6 +932,12 @@ def run_monitor():
                     if active_tab == 2:
                         is_killing = True
                         need_immediate_render = True
+                    elif active_tab == 5 and cached_partitions and selected_part_idx < len(cached_partitions):
+                        target_p = cached_partitions[selected_part_idx]["path"]
+                        disk_worker.run_action("fsck", target_p)
+                        snapshot_msg = f"Initiated FSCK integrity check on {target_p} in background..."
+                        snapshot_msg_timer = time.time() + 4.0
+                        need_immediate_render = True
                     elif active_tab == 7 and db_subview == 2:
                         is_dropping_db_user = True
                         need_immediate_render = True
@@ -777,7 +951,11 @@ def run_monitor():
                         need_immediate_render = True
                 elif key in ('n', 'N'):
                     if active_tab == 7:
-                        if db_subview == 1:
+                        if db_subview == 0:
+                            is_deploying_container = True
+                            deploy_input_choice = ""
+                            need_immediate_render = True
+                        elif db_subview == 1:
                             is_creating_db = True
                             db_input_name = ""
                             need_immediate_render = True
@@ -796,7 +974,7 @@ def run_monitor():
                     elif active_tab == 5 and cached_partitions and selected_part_idx < len(cached_partitions):
                         is_unmounting = True
                         need_immediate_render = True
-                elif key in ('x', 'X'):
+                elif key in ('x', 'X', 'd', 'D'):
                     if active_tab == 7:
                         if db_subview == 0 and cached_containers and selected_container_idx < len(cached_containers):
                             is_deleting_container = True
@@ -807,6 +985,9 @@ def run_monitor():
                         elif db_subview == 2 and cached_users and selected_user_idx < len(cached_users):
                             is_dropping_db_user = True
                             need_immediate_render = True
+                    elif active_tab == 8:
+                        is_deleting_ufw = True
+                        need_immediate_render = True
                     elif active_tab == 9 and not installer_mgr.is_running:
                         is_uninstalling_software = True
                         need_immediate_render = True
@@ -836,20 +1017,6 @@ def run_monitor():
                         is_adding_ufw = True
                         ufw_input_rule = ""
                         need_immediate_render = True
-                elif key in ('d', 'D'):
-                    if active_tab == 8:
-                        is_deleting_ufw = True
-                        need_immediate_render = True
-                    elif active_tab == 7:
-                        if db_subview == 0:
-                            is_deleting_container = True
-                            need_immediate_render = True
-                        elif db_subview == 1:
-                            is_dropping_db = True
-                            need_immediate_render = True
-                        elif db_subview == 2:
-                            is_dropping_db_user = True
-                            need_immediate_render = True
                 elif key in ('f', 'F'):
                     if active_tab == 5 and cached_partitions and selected_part_idx < len(cached_partitions):
                         is_formatting = True
@@ -866,14 +1033,17 @@ def run_monitor():
                 snapshot_msg = None
                 need_immediate_render = True
 
-            should_refresh = (now - last_refresh_time >= refresh_rate) or need_immediate_render
-
-            if should_refresh:
+            now = time.time()
+            is_tick = (now - last_refresh_time >= refresh_rate) or (stats is None)
+            if is_tick:
                 if not is_paused or stats is None:
-                    stats = get_all_device_stats(force=True)
+                    stats = get_all_device_stats(force=False)
                     history.update(stats)
                 last_refresh_time = now
 
+            should_refresh = is_tick or need_immediate_render
+
+            if should_refresh:
                 if need_full_clear:
                     sys.stdout.write("\033[2J\033[3J\033[H")
                     sys.stdout.flush()
@@ -950,7 +1120,14 @@ def run_monitor():
                     selected_installer_idx=selected_installer_idx,
                     installer_mgr=installer_mgr,
                     prompt_text=prompt_str,
-                    modal_info=modal_info
+                    modal_info=modal_info,
+                    cached_procs=cached_procs,
+                    cached_containers=cached_containers,
+                    cached_dbs=cached_dbs,
+                    cached_users=cached_users,
+                    cached_ufw_rules=cached_ufw_rules,
+                    cached_partitions=cached_partitions,
+                    force_refresh=(is_tick or need_hard_data_refresh)
                 )
 
     except KeyboardInterrupt:

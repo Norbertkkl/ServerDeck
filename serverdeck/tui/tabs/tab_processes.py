@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from serverdeck.core.i18n import i18n
 from serverdeck.collectors.processes import get_detailed_processes
 from serverdeck.tui.theme import colorize
@@ -7,7 +7,15 @@ from serverdeck.tui.components import (
     pad_visible, format_bytes
 )
 
-def render_tab_2_processes(sort_by: str, theme: Dict[str, Any], filter_str: str = "", selected_proc_idx: int = 0, is_modal: bool = False) -> List[Dict[str, Any]]:
+def render_tab_2_processes(
+    sort_by: str,
+    theme: Dict[str, Any],
+    filter_str: str = "",
+    selected_proc_idx: int = 0,
+    is_modal: bool = False,
+    cached_procs: Optional[List[Dict[str, Any]]] = None,
+    force_refresh: bool = False
+) -> List[Dict[str, Any]]:
     c_border = theme.get("border", "#1e3a8a")
     c_title = theme.get("title", "#00f0ff")
     c_label = theme.get("label", "#94a3b8")
@@ -18,7 +26,22 @@ def render_tab_2_processes(sort_by: str, theme: Dict[str, Any], filter_str: str 
     box_w = min(120, max(40, w - 2))
     inner_w = box_w - 4
 
-    procs_all = get_detailed_processes(sort_by=sort_by, limit=150, filter_str=filter_str)
+    if cached_procs is not None and not force_refresh:
+        all_procs = cached_procs
+    else:
+        all_procs = get_detailed_processes(sort_by=sort_by, limit=150)
+
+    if filter_str:
+        f_low = filter_str.lower()
+        procs_all = [
+            p for p in all_procs
+            if f_low in str(p.get('pid', ''))
+            or f_low in p.get('name', '').lower()
+            or f_low in p.get('user', '').lower()
+            or f_low in p.get('cmdline', '').lower()
+        ]
+    else:
+        procs_all = all_procs
     total_count = len(procs_all)
     page_size = 3 if is_modal else 8
     total_pages = max(1, (total_count + page_size - 1) // page_size) if total_count else 1
@@ -73,7 +96,7 @@ def render_tab_2_processes(sort_by: str, theme: Dict[str, Any], filter_str: str 
         print(render_box_line(colorize("No active processes found matching filter.", c_label), box_w, theme))
 
     print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-    info_pos = f"• [Showing {start_idx + 1}-{end_idx} of {total_count}] | [s] Sort | [k] Kill | [/] Filter | [↑/↓/PgUp/PgDn] Scroll" if total_count else "• [s] Sort | [k] Kill | [/] Filter"
+    info_pos = f"• [Showing {start_idx + 1}-{end_idx} of {total_count}] | [s] Sort | [k] Kill | [/] Filter | [↑/↓] Scroll" if total_count else "• [s] Sort | [k] Kill | [/] Filter"
     print(render_box_line(info_pos, box_w, theme))
     print(render_box_footer(box_w, theme))
     return procs_all

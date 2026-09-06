@@ -245,6 +245,8 @@ class PythonInstallerManager:
         try:
             if mode == "uninstall":
                 self._run_uninstall_logic(action_id)
+            elif mode == "restart":
+                self._run_restart_logic(action_id)
             else:
                 self._run_install_logic(action_id)
             get_software_hub_status(force=True)
@@ -463,3 +465,37 @@ class PythonInstallerManager:
             if pkg_name:
                 first_word = pkg_name.split()[0]
                 remove_pkgs([first_word])
+
+    def _run_restart_logic(self, action_id: str):
+        svc_map = {
+            "1": ["ssh", "sshd"],
+            "2": ["vsftpd"],
+            "3": ["mariadb", "mysql"],
+            "4": ["docker"],
+            "6": ["nginx"],
+            "7": ["apache2", "httpd"],
+            "8": ["postgresql"],
+            "9": ["redis-server", "redis"],
+            "10": ["ufw"],
+            "11": ["smbd", "samba"],
+            "12": ["cockpit"],
+            "13": ["fail2ban"],
+            "14": ["caddy"],
+            "32": ["netdata"],
+            "33": ["prometheus-node-exporter"],
+            "34": ["grafana-server"],
+            "35": ["wings"],
+            "37": ["tailscaled"]
+        }
+        if action_id == "17":
+            self.log("Restarting Portainer container...")
+            self._run_cmd(["docker", "restart", "portainer"])
+        elif action_id == "31":
+            self.log("Restarting Uptime Kuma container...")
+            self._run_cmd(["docker", "restart", "uptime-kuma"])
+        elif action_id in svc_map:
+            for s in svc_map[action_id]:
+                self.log(f"Restarting service {s}...")
+                self._run_cmd(["systemctl", "restart", s])
+        else:
+            self.log(f"No specific background service defined to restart for #{action_id}.")

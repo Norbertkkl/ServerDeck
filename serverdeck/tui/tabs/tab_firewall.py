@@ -7,7 +7,15 @@ from serverdeck.tui.components import (
     pad_visible
 )
 
-def render_tab_8_ufw(theme: Dict[str, Any], selected_idx: int = 0, filter_str: str = "", snapshot_msg: Optional[str] = None, is_modal: bool = False) -> List[Dict[str, Any]]:
+def render_tab_8_ufw(
+    theme: Dict[str, Any],
+    selected_idx: int = 0,
+    filter_str: str = "",
+    snapshot_msg: Optional[str] = None,
+    is_modal: bool = False,
+    cached_rules: Optional[List[Dict[str, Any]]] = None,
+    force_refresh: bool = False
+) -> List[Dict[str, Any]]:
     c_border = theme.get("border", "#1e3a8a")
     c_title = theme.get("title", "#00f0ff")
     c_label = theme.get("label", "#94a3b8")
@@ -18,19 +26,22 @@ def render_tab_8_ufw(theme: Dict[str, Any], selected_idx: int = 0, filter_str: s
     box_w = min(120, max(40, w - 2))
     inner_w = box_w - 4
 
-    ufw_info = get_ufw_status()
-    all_rules = ufw_info.get("rules", [])
-    if filter_str:
-        f_lower = filter_str.lower()
-        rules = [
-            r for r in all_rules
-            if f_lower in str(r.get("num", "")).lower()
-            or f_lower in r.get("to", "").lower()
-            or f_lower in r.get("action", "").lower()
-            or f_lower in r.get("from", "").lower()
-        ]
+    ufw_info = get_ufw_status(force=force_refresh)
+    if cached_rules is not None and not force_refresh and not filter_str:
+        rules = cached_rules
     else:
-        rules = all_rules
+        all_rules = ufw_info.get("rules", [])
+        if filter_str:
+            f_lower = filter_str.lower()
+            rules = [
+                r for r in all_rules
+                if f_lower in str(r.get("num", "")).lower()
+                or f_lower in r.get("to", "").lower()
+                or f_lower in r.get("action", "").lower()
+                or f_lower in r.get("from", "").lower()
+            ]
+        else:
+            rules = all_rules
 
     is_act = ufw_info.get("active", False)
     stat_badge = colorize("[ ACTIVE / ENABLED ]", theme.get("ok", "#00ff9d"), bold=True) if is_act else colorize("[ DISABLED / INACTIVE ]", theme.get("crit", "#f43f5e"), bold=True)
@@ -76,7 +87,7 @@ def render_tab_8_ufw(theme: Dict[str, Any], selected_idx: int = 0, filter_str: s
         print(render_box_line(colorize("  No firewall rules configured or match filter.", c_label), box_w, theme))
 
     print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-    shortcuts = f"• [Rule {selected_idx + 1} of {len(rules)}] | [a] Add | [d] Delete | [t] Toggle | [r] Reload | [/] Filter | [↑/↓] Select" if rules else "• Shortcuts: [a] Add Rule | [t] Toggle UFW | [r] Reload"
+    shortcuts = f"• [Rule {selected_idx + 1}/{len(rules)}] | [a] Add | [d] Del | [t] Toggle | [r] Reload | [/] Filter" if rules else "• Shortcuts: [a] Add Rule | [t] Toggle UFW | [r] Reload"
     print(render_box_line(shortcuts, box_w, theme))
     print(render_box_footer(box_w, theme))
     return rules

@@ -15,7 +15,11 @@ def render_tab_7_db_and_docker(
     selected_db_idx: int = 0,
     selected_user_idx: int = 0,
     snapshot_msg: Optional[str] = None,
-    is_modal: bool = False
+    is_modal: bool = False,
+    cached_containers: Optional[List[Dict[str, Any]]] = None,
+    cached_dbs: Optional[List[Dict[str, Any]]] = None,
+    cached_users: Optional[List[Dict[str, Any]]] = None,
+    force_refresh: bool = False
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     c_border = theme.get("border", "#1e3a8a")
     c_title = theme.get("title", "#00f0ff")
@@ -27,9 +31,26 @@ def render_tab_7_db_and_docker(
     box_w = min(120, max(40, w - 2))
     inner_w = box_w - 4
 
-    containers = get_docker_containers()
-    databases = get_mariadb_databases()
-    users = get_mariadb_users()
+    if cached_containers is not None and not force_refresh:
+        containers = cached_containers
+    elif subview == 0 or force_refresh:
+        containers = get_docker_containers(force=force_refresh)
+    else:
+        containers = cached_containers if cached_containers is not None else []
+
+    if cached_dbs is not None and not force_refresh:
+        databases = cached_dbs
+    elif subview == 1 or force_refresh:
+        databases = get_mariadb_databases(force=force_refresh)
+    else:
+        databases = cached_dbs if cached_dbs is not None else []
+
+    if cached_users is not None and not force_refresh:
+        users = cached_users
+    elif subview == 2 or force_refresh:
+        users = get_mariadb_users(force=force_refresh)
+    else:
+        users = cached_users if cached_users is not None else []
 
     print(render_box_header("DOCKER CONTAINERS & MARIADB MANAGEMENT", box_w, theme))
 
@@ -41,7 +62,7 @@ def render_tab_7_db_and_docker(
     sub_0 = fmt_sub("Docker Containers", subview == 0)
     sub_1 = fmt_sub("DB Schemas", subview == 1)
     sub_2 = fmt_sub("User Accounts", subview == 2)
-    subview_bar = f"• Subview: {sub_0} | {sub_1} | {sub_2}  [v/◄►]"
+    subview_bar = f"• Subview: {sub_0} | {sub_1} | {sub_2}  [Tab]"
     print(render_box_line(subview_bar, box_w, theme))
     print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
 
@@ -75,7 +96,7 @@ def render_tab_7_db_and_docker(
             print(render_box_line(colorize("No active Docker containers running or detected.", c_label), box_w, theme))
 
         print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-        shortcuts = f"• Shortcuts: [s] Toggle | [r] Restart | [d] Del | [n] Deploy | [v/◄►] View"
+        shortcuts = f"• Shortcuts: [n] New | [s] State | [r] Restart | [d] Del | [Tab] Switch"
         print(render_box_line(shortcuts, box_w, theme))
         print(render_box_footer(box_w, theme))
 
@@ -92,21 +113,27 @@ def render_tab_7_db_and_docker(
             is_selected = (actual_idx == selected_db_idx)
             pointer = "► " if is_selected else "  "
 
-            d_num = pad_visible(str(actual_idx + 1), 4)
-            d_name = colorize(pad_visible(d['name'], 24), c_title if is_selected else c_val, bold=is_selected)
-            d_tbls = colorize(pad_visible(str(d['tables']), 10), c_val)
-            d_sz = colorize(pad_visible(f"{d['size_mb']:.2f} MB", 14), c_hl)
-            d_type = colorize("System", c_label) if d['is_system'] else colorize("User DB", theme.get("ok", "#00ff9d"))
+            idx_str = f"#{actual_idx + 1}"
+            name_str = d.get("name", "")[:22]
+            tbl_count = str(d.get("tables", 0))
+            sz_str = format_bytes(d.get("size_bytes", 0)).strip()
+            db_engine = d.get("engine", "InnoDB")[:8]
 
             ptr_col = colorize(pointer, c_hl, bold=True)
-            row = f"{ptr_col} {d_num} {d_name} {d_tbls} {d_sz} {d_type}"
+            idx_col = colorize(pad_visible(idx_str, 4), c_label)
+            name_col = colorize(pad_visible(name_str, 24), c_hl if is_selected else c_val, bold=is_selected)
+            tbl_col = colorize(pad_visible(tbl_count, 10), c_val)
+            sz_col = colorize(pad_visible(sz_str, 14), theme.get("accent", "#38bdf8"))
+            eng_col = colorize(pad_visible(db_engine, 8), c_title)
+
+            row = f"{ptr_col}{idx_col} {name_col} {tbl_col} {sz_col} {eng_col}"
             print(render_box_line(row, box_w, theme))
 
         if not databases:
             print(render_box_line(colorize("No MariaDB/MySQL databases found or connection failed.", c_label), box_w, theme))
 
         print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-        shortcuts = f"• Shortcuts: [n] Create DB | [d] Drop DB | [↑/↓] Select | [v/◄►] View"
+        shortcuts = f"• Shortcuts: [n] Create DB | [d] Drop DB | [Tab] Switch"
         print(render_box_line(shortcuts, box_w, theme))
         print(render_box_footer(box_w, theme))
 
@@ -137,7 +164,7 @@ def render_tab_7_db_and_docker(
             print(render_box_line(colorize("No user accounts found.", c_label), box_w, theme))
 
         print(render_box_line(colorize("─" * inner_w, c_border), box_w, theme))
-        shortcuts = f"• Shortcuts: [n] Add User | [d] Drop User | [p] Pass | [g] Priv | [v/◄►] View"
+        shortcuts = f"• Shortcuts: [n] Add | [d] Drop | [p] Pass | [g] Priv | [Tab] Switch"
         print(render_box_line(shortcuts, box_w, theme))
         print(render_box_footer(box_w, theme))
 
